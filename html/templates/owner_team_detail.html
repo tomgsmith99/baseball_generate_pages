@@ -1,0 +1,31 @@
+
+<a id="{link}"></a>
+
+<table class="table table-striped table-bordered table-sm">
+	<thead>
+		<tr>
+			<th colspan="8">{nickname} - {team_name}</th>
+		</tr>
+
+		<tr><th colspan="8">{season}: {pos} place</th></tr>
+
+		<tr>
+			<th>POS</th>
+			<th>Name</th>
+			<th class="text-center">Team</th>
+			<th class="text-center">Salary</th>
+			<th class="text-center">Pts</th>
+			<th class="text-center">Val</th>
+		</tr>
+	</thead>
+
+	<tbody>
+		{players}
+		<tr>
+			<td colspan="3" align="right">bank: ${bank}</td>
+			<td align="right"><b>${salary}</b></td>
+			<td align="right"><b>{points}</b></td>
+			<td><a href = "#top">top</a></td>
+		</tr>
+	</tbody>
+</table>
