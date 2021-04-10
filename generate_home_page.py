@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+import boto3
+import datetime
 import json
 import mysql.connector
 from mysql.connector import Error
@@ -548,6 +550,30 @@ f.close()
 
 ###################################################
 
+s3 = boto3.resource('s3')
+
+x = datetime.datetime.now()
+
+day = str(x.day)
+month = str(x.month)
+
+if len(month) == 1:
+	month = "0" + month
+if len(day) == 1:
+	day = "0" + day
+
+filename = str(x.year) + "-" + month + "-" + day + ".html"
+
+# data = "<html>hello!</html>"
+
+# s3.Bucket('baseball.tomgsmith.com').put_object(Key='test.html', Body=data)
+
+s3.Bucket('baseball.tomgsmith.com').put_object(Key='index.html', Body=home, ContentType='text/html', ACL='public-read')
+s3.Bucket('baseball.tomgsmith.com').put_object(Key='backup/' + filename, Body=home, ContentType='text/html', ACL='public-read')
+
+
+###################################################
+
 query = "SELECT * FROM players_current_view ORDER BY points DESC, lnf ASC"
 
 html = ""
@@ -598,6 +624,12 @@ for chunk in content:
 f = open("html/output/players.html", "w")
 f.write(players_page)
 f.close()
-exit()
 
 ###################################################
+
+s3.Bucket('baseball.tomgsmith.com').put_object(Key='seasons/' + str(season) + '/players/index.html', Body=players_page, ContentType='text/html', ACL='public-read')
+s3.Bucket('baseball.tomgsmith.com').put_object(Key='backup/players/' + filename, Body=players_page, ContentType='text/html', ACL='public-read')
+
+###################################################
+
+exit()
