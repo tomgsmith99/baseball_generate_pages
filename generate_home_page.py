@@ -5,10 +5,18 @@ import datetime
 import json
 import mysql.connector
 from mysql.connector import Error
+import os
 
 ###################################################
 
-with open('.env.json') as json_file:
+base_path = ""
+
+if os.getcwd() == "/home/tomgsmith99":
+	base_path = "/home/tomgsmith99/bin/baseball_generate_pages/"
+
+###################################################
+
+with open(base_path + '.env.json') as json_file:
 	env = json.load(json_file)
 
 print("#######################################")
@@ -65,7 +73,8 @@ def make_ordinal(n):
 ###################################################
 
 content = {
-	"season": season
+	"season": season,
+	"page_generated": datetime.datetime.now()
 }
 
 ###################################################
@@ -73,7 +82,7 @@ content = {
 
 owner_rows_summary = ""
 
-with open("html/templates/owner_row_home_page.html") as file:
+with open(base_path + "html/templates/owner_row_home_page.html") as file:
 	template = file.read()
 
 query = "SELECT * FROM ownersXseasons_current_view ORDER BY points DESC, nickname ASC"
@@ -138,7 +147,7 @@ content["owner_dropdown"] = owner_dropdown
 
 teams = ""
 
-with open("html/templates/owner_team_detail.html") as file:
+with open(base_path + "html/templates/owner_team_detail.html") as file:
 	template = file.read()
 
 query = "SELECT * FROM ownersXseasons_current_view ORDER BY points DESC"
@@ -173,7 +182,7 @@ for row in rows:
 
 	players = get_rows(query)
 
-	with open("html/templates/player_in_team.html") as file:
+	with open(base_path + "html/templates/player_in_team.html") as file:
 		player_template = file.read()
 
 	players_html = ""
@@ -201,7 +210,7 @@ content["teams"] = teams
 
 html = ""
 
-with open("html/templates/player_row_tiny.html") as file:
+with open(base_path + "html/templates/player_row_tiny.html") as file:
 	template = file.read()
 
 query = "SELECT fnf, player_id, points FROM players_current_view WHERE picked > 0 ORDER BY points DESC LIMIT 5"
@@ -237,7 +246,7 @@ content["most_productive_players-picked"] = html
 
 html = ""
 
-with open("html/templates/player_row_tiny.html") as file:
+with open(base_path + "html/templates/player_row_tiny.html") as file:
 	template = file.read()
 
 query = "SELECT fnf, player_id, value FROM players_current_view WHERE picked > 0 ORDER BY value DESC LIMIT 5"
@@ -273,7 +282,7 @@ content["most_valuable_players-picked"] = html
 
 html = ""
 
-with open("html/templates/player_row_tiny.html") as file:
+with open(base_path + "html/templates/player_row_tiny.html") as file:
 	template = file.read()
 
 query = "SELECT fnf, player_id, picked FROM players_current_view ORDER BY picked DESC LIMIT 5"
@@ -309,7 +318,7 @@ content["most_popular_players"] = html
 
 html = ""
 
-with open("html/templates/player_row_tiny.html") as file:
+with open(base_path + "html/templates/player_row_tiny.html") as file:
 	template = file.read()
 
 query = "SELECT fnf, player_id, points FROM players_current_view ORDER BY points DESC LIMIT 5"
@@ -345,7 +354,7 @@ content["most_productive_players-all"] = html
 
 html = ""
 
-with open("html/templates/player_row_tiny.html") as file:
+with open(base_path + "html/templates/player_row_tiny.html") as file:
 	template = file.read()
 
 query = "SELECT fnf, player_id, value FROM players_current_view ORDER BY value DESC LIMIT 5"
@@ -381,7 +390,7 @@ content["most_valuable_players-all"] = html
 
 html = ""
 
-with open("html/templates/owner_row_tiny.html") as file:
+with open(base_path + "html/templates/owner_row_tiny.html") as file:
 	template = file.read()
 
 query = "SELECT nickname, owner_id, yesterday FROM ownersXseasons_current_view ORDER BY yesterday DESC, nickname ASC LIMIT 5"
@@ -417,7 +426,7 @@ content["yesterday_top_owners"] = html
 
 html = ""
 
-with open("html/templates/owner_row_tiny.html") as file:
+with open(base_path + "html/templates/owner_row_tiny.html") as file:
 	template = file.read()
 
 query = "SELECT nickname, owner_id, recent FROM ownersXseasons_current_view ORDER BY recent DESC, nickname ASC LIMIT 5"
@@ -453,7 +462,7 @@ content["hot_owners"] = html
 
 html = ""
 
-with open("html/templates/player_row_tiny.html") as file:
+with open(base_path + "html/templates/player_row_tiny.html") as file:
 	template = file.read()
 
 query = "SELECT fnf, player_id, yesterday FROM players_current_view ORDER BY yesterday DESC, lnf ASC LIMIT 5"
@@ -489,7 +498,7 @@ content["yesterday_top_players"] = html
 
 html = ""
 
-with open("html/templates/player_row_tiny.html") as file:
+with open(base_path + "html/templates/player_row_tiny.html") as file:
 	template = file.read()
 
 query = "SELECT fnf, player_id, recent FROM players_current_view ORDER BY recent DESC, lnf ASC LIMIT 5"
@@ -533,10 +542,10 @@ content["last_updated"] = row["update_desc"]
 
 ###################################################
 
-with open("html/templates/base.html") as file:
+with open(base_path + "html/templates/base.html") as file:
 	base = file.read()
 
-with open("html/templates/home.html") as file:
+with open(base_path + "html/templates/home.html") as file:
 	home = file.read()
 
 home = base.replace("{main}", home)
@@ -544,7 +553,7 @@ home = base.replace("{main}", home)
 for chunk in content:
 	home = home.replace("{" + chunk + "}", str(content[chunk]))
 
-f = open("html/output/index.html", "w")
+f = open(base_path + "html/output/index.html", "w")
 f.write(home)
 f.close()
 
@@ -564,13 +573,8 @@ if len(day) == 1:
 
 filename = str(x.year) + "-" + month + "-" + day + ".html"
 
-# data = "<html>hello!</html>"
-
-# s3.Bucket('baseball.tomgsmith.com').put_object(Key='test.html', Body=data)
-
 s3.Bucket('baseball.tomgsmith.com').put_object(Key='index.html', Body=home, ContentType='text/html', ACL='public-read')
 s3.Bucket('baseball.tomgsmith.com').put_object(Key='backup/' + filename, Body=home, ContentType='text/html', ACL='public-read')
-
 
 ###################################################
 
@@ -578,7 +582,7 @@ query = "SELECT * FROM players_current_view ORDER BY points DESC, lnf ASC"
 
 html = ""
 
-with open("html/templates/player_in_player_table.html") as file:
+with open(base_path + "html/templates/player_in_player_table.html") as file:
 	template = file.read()
 
 rows = get_rows(query)
@@ -610,10 +614,10 @@ content["player_rows"] = html
 
 ###################################################
 
-with open("html/templates/base.html") as file:
+with open(base_path + "html/templates/base.html") as file:
 	base = file.read()
 
-with open("html/templates/players.html") as file:
+with open(base_path + "html/templates/players.html") as file:
 	players_page = file.read()
 
 players_page = base.replace("{main}", players_page)
@@ -621,7 +625,7 @@ players_page = base.replace("{main}", players_page)
 for chunk in content:
 	players_page = players_page.replace("{" + chunk + "}", str(content[chunk]))
 
-f = open("html/output/players.html", "w")
+f = open(base_path + "html/output/players.html", "w")
 f.write(players_page)
 f.close()
 

@@ -3,29 +3,35 @@
 import boto3
 import datetime
 
-s3 = boto3.resource('s3')
-
 x = datetime.datetime.now()
 
-print(x)
+print(x.strftime("%A"))
 
-print(x.year)
-print(x.day)
-print(x.month)
+print(x.strftime("%Z"))
 
-day = str(x.day)
-month = str(x.month)
+# s3 = boto3.resource('s3')
 
-if len(month) == 1:
-	month = "0" + month
-if len(day) == 1:
-	day = "0" + day
+# x = datetime.datetime.now()
 
-filename = str(x.year) + "-" + month + "-" + day + ".html"
+# print(x)
 
-data = "<html>hello!</html>"
+# print(x.year)
+# print(x.day)
+# print(x.month)
 
-# s3.Bucket('baseball.tomgsmith.com').put_object(Key='test.html', Body=data)
+# day = str(x.day)
+# month = str(x.month)
 
-s3.Bucket('baseball.tomgsmith.com').put_object(Key=filename, Body=data)
+# if len(month) == 1:
+# 	month = "0" + month
+# if len(day) == 1:
+# 	day = "0" + day
+
+# filename = str(x.year) + "-" + month + "-" + day + ".html"
+
+# data = "<html>hello!</html>"
+
+# # s3.Bucket('baseball.tomgsmith.com').put_object(Key='test.html', Body=data)
+
+# s3.Bucket('baseball.tomgsmith.com').put_object(Key=filename, Body=data)
 
