@@ -185,7 +185,9 @@ for row in rows:
 	with open(base_path + "html/templates/player_in_team.html") as file:
 		player_template = file.read()
 
-	players_html = ""
+	active_html = ""
+
+	bench_html = ""
 
 	for p in players:
 
@@ -196,9 +198,22 @@ for row in rows:
 		for field in fields:
 			this_player = this_player.replace("{" + field + "}", str(p[field]))
 
-		players_html += this_player
+		if p["acquired"] == 1:
+			this_player = this_player.replace("{font-style}", "italic")
+		else:
+			this_player = this_player.replace("{font-style}", "normal")
 
-	this_team = this_team.replace("{players}", players_html)
+		if p["benched"] == 1:
+			bench_html += this_player
+		else:
+			active_html += this_player
+
+
+	if bench_html != "":
+		bench_html = '<tr><td colspan="8" style="text-align: center;">Benched players</td></tr>\n' + bench_html
+
+	this_team = this_team.replace("{active_html}", active_html)
+	this_team = this_team.replace("{bench_html}", bench_html)
 
 	teams += this_team
 
