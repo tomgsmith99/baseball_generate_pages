@@ -91,23 +91,47 @@ print(query)
 
 rows = get_rows(query)
 
+# see if any owners are tied and calculate place accordingly
+
+places = {}
+
+prev_owner_points = 0
+
 i = 0
+
+place = 0
 
 for row in rows:
 
 	i += 1
 
+	owner_id = row["owner_id"]
+
+	if row["points"] == prev_owner_points:
+		places[owner_id] = place
+	else:
+		places[owner_id] = i
+		place = i
+
+	prev_owner_points = row["points"]
+
+# now generate owner rows
+
+for row in rows:
+
 	this_row = template
 
-	row["pos"] = i
+	owner_id = row["owner_id"]
 
 	row["link"] = str(season) + "_" + str(row["owner_id"])
+
+	row["place"] = places[owner_id]
 
 	if row["head_shot"]:
 		url = row["head_shot"]
 		row["head_shot"] = f'<img src="{url}">'
 
-	fields = ["head_shot", "link", "nickname", "points", "pos", "team_name"]
+	fields = ["head_shot", "link", "nickname", "place", "points", "team_name"]
 
 	for field in fields:
 		this_row = this_row.replace("{" + field + "}", str(row[field]))
@@ -156,11 +180,11 @@ print(query)
 
 rows = get_rows(query)
 
-pos = 0
-
 for row in rows:
 
-	pos += 1
+	owner_id = row["owner_id"]
+
+	place = places[owner_id]
 
 	this_team = template
 
@@ -168,9 +192,9 @@ for row in rows:
 
 	row["link"] = str(season) + "_" + str(row["owner_id"])
 
-	row["pos"] = make_ordinal(pos)
+	row["place"] = make_ordinal(place)
 
-	fields = ["bank", "link", "nickname", "salary", "points", "pos", "season", "team_name"]
+	fields = ["bank", "link", "nickname", "salary", "place", "points", "season", "team_name"]
 
 	for field in fields:
 		this_team = this_team.replace("{" + field + "}", str(row[field]))
