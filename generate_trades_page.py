@@ -97,8 +97,6 @@ base = base.replace("{main}", template)
 
 base = base.replace("{season}", str(season))
 
-print(base)
-
 ###################################################
 
 f = open("html/output/trades.html", "w")
