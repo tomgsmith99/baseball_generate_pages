@@ -215,9 +215,15 @@ for row in rows:
 
 	for p in players:
 
+		if p["recent"] == -1:
+			p["recent"] = "N/A"
+
+		if p["yesterday"] == -1:
+			p["yesterday"] = "N/A"
+
 		this_player = player_template
 
-		fields = ["fnf", "pos", "player_id", "points", "salary", "team", "value"]
+		fields = ["fnf", "pos", "player_id", "points", "recent", "salary", "team", "value", "yesterday"]
 
 		for field in fields:
 			this_player = this_player.replace("{" + field + "}", str(p[field]))
@@ -232,9 +238,8 @@ for row in rows:
 		else:
 			active_html += this_player
 
-
 	if bench_html != "":
-		bench_html = '<tr><td colspan="8" style="text-align: center;">Benched players</td></tr>\n' + bench_html
+		bench_html = '<tr><td colspan="10" style="text-align: center;">Benched players</td></tr>\n' + bench_html
 
 	this_team = this_team.replace("{active_html}", active_html)
 	this_team = this_team.replace("{bench_html}", bench_html)
@@ -580,6 +585,8 @@ row = get_row(query)
 content["last_updated"] = row["update_desc"]
 
 ###################################################
+
+content["title"] = "standings"
 
 with open(base_path + "html/templates/base.html") as file:
 	base = file.read()
