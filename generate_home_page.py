@@ -616,6 +616,8 @@ s3.Bucket('baseball.tomgsmith.com').put_object(Key='index.html', Body=home, Cont
 s3.Bucket('baseball.tomgsmith.com').put_object(Key='backup/' + filename, Body=home, ContentType='text/html', ACL='public-read')
 
 ###################################################
+###################################################
+# players.html
 
 query = "SELECT * FROM players_current_view ORDER BY points DESC, lnf ASC"
 
@@ -674,5 +676,40 @@ s3.Bucket('baseball.tomgsmith.com').put_object(Key='seasons/' + str(season) + '/
 s3.Bucket('baseball.tomgsmith.com').put_object(Key='backup/players/' + filename, Body=players_page, ContentType='text/html', ACL='public-read')
 
 ###################################################
+###################################################
+# trades.html
 
+query = "SELECT * FROM players_current_view ORDER BY points DESC, lnf ASC"
+
+html = ""
+
+with open(base_path + "html/templates/player_in_player_table.html") as file:
+	template = file.read()
+
+rows = get_rows(query)
+
+for row in rows:
+
+	if row["recent"] == -1:
+		row["recent"] = "N/A"
+
+	if row["yesterday"] == -1:
+		row["yesterday"] = "N/A"
+
+	player_id = row["player_id"]
+
+	fnf = row["fnf"]
+
+	row["name_with_link"] = f'<a href="/players/{player_id}" target="_blank">{fnf}</a>'
+
+	this_player = template
+
+	vals = ["points", "name_with_link", "pos", "yesterday", "recent", "salary", "team", "value", "drafted", "picked"]
+
+	for val in vals:
+		this_player = this_player.replace("{" + val + "}", str(row[val]))
+
+	html += this_player + "\n"
+
+content["player_rows"] = html
 exit()
