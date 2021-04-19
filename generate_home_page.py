@@ -194,7 +194,7 @@ for row in rows:
 
 	row["place"] = make_ordinal(place)
 
-	fields = ["bank", "link", "nickname", "salary", "place", "points", "season", "team_name"]
+	fields = ["bank", "link", "nickname", "salary", "place", "points", "recent", "season", "team_name", "yesterday"]
 
 	for field in fields:
 		this_team = this_team.replace("{" + field + "}", str(row[field]))
@@ -586,7 +586,7 @@ content["last_updated"] = row["update_desc"]
 
 ###################################################
 
-content["title"] = "standings"
+content["title"] = "Standings"
 
 with open(base_path + "html/templates/base.html") as file:
 	base = file.read()
@@ -625,6 +625,8 @@ s3.Bucket('baseball.tomgsmith.com').put_object(Key='backup/' + filename, Body=ho
 ###################################################
 ###################################################
 # players.html
+
+content["title"] = "Players"
 
 query = "SELECT * FROM players_current_view ORDER BY points DESC, lnf ASC"
 

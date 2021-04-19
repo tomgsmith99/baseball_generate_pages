@@ -3,9 +3,6 @@
 import boto3
 import datetime
 import json
-# import mysql.connector
-# from mysql.connector import Error
-# import os
 
 ###################################################
 
@@ -89,7 +86,7 @@ template = template.replace("{trades}", table_rows)
 with open("html/templates/base.html") as file:
 	base = file.read()
 
-base = base.replace("{title}", "trades")
+base = base.replace("{title}", "Trades")
 
 base = base.replace("{page_generated}", str(content["page_generated"]))
 
