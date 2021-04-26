@@ -63,6 +63,61 @@ def get_rows(query):
 	except mysql.connector.Error as error:
 		print("query failed {}".format(error))
 
+def get_small_stats_table(column, person_type, picked_only=True):
+
+	html = ""
+
+	if person_type == "player":
+		with open(base_path + "html/templates/player_row_tiny.html") as file:
+			template = file.read()
+		query = f'SELECT fnf, player_id, {column} FROM players_current_view'
+
+		if picked_only:
+			query += ' WHERE picked > 0'
+
+		query += f' ORDER BY {column} DESC'
+	else:
+		with open(base_path + "html/templates/owner_row_tiny.html") as file:
+			template = file.read()
+		query = f'SELECT nickname, owner_id, {column} FROM ownersXseasons_current_view ORDER BY {column} DESC, nickname ASC'
+
+	query += ' LIMIT 5'
+
+	print(query)
+
+	rows = get_rows(query)
+
+	i = 0
+
+	for row in rows:
+		i += 1
+
+		this_person = template
+
+		if row[column] < 0:
+			cat_val = "N/A"
+		else:
+			cat_val = row[column]
+
+		vals = {
+			"rank": i,
+			"cat_val": cat_val
+		}
+
+		if person_type == "player":
+			vals["fnf"] = row["fnf"]
+			vals["player_id"] = row["player_id"]
+		else:
+			vals["nickname"] = row["nickname"]
+			vals["owner_id"] = row["owner_id"]
+
+		for val in vals:
+			this_person = this_person.replace("{" + val + "}", str(vals[val]))
+
+		html += this_person + "\n"
+
+	return html
+
 def make_ordinal(n):
 	n = int(n)
 	suffix = ['th', 'st', 'nd', 'rd', 'th'][min(n % 10, 4)]
@@ -85,35 +140,11 @@ owner_rows_summary = ""
 with open(base_path + "html/templates/owner_row_home_page.html") as file:
 	template = file.read()
 
-query = "SELECT * FROM ownersXseasons_current_view ORDER BY points DESC, nickname ASC"
+query = "SELECT * FROM ownersXseasons_current_view ORDER BY place ASC, nickname ASC"
 
 print(query)
 
 rows = get_rows(query)
-
-# see if any owners are tied and calculate place accordingly
-
-places = {}
-
-prev_owner_points = 0
-
-i = 0
-
-place = 0
-
-for row in rows:
-
-	i += 1
-
-	owner_id = row["owner_id"]
-
-	if row["points"] == prev_owner_points:
-		places[owner_id] = place
-	else:
-		places[owner_id] = i
-		place = i
-
-	prev_owner_points = row["points"]
 
 # now generate owner rows
 
@@ -124,8 +155,6 @@ for row in rows:
 	owner_id = row["owner_id"]
 
 	row["link"] = str(season) + "_" + str(row["owner_id"])
-
-	row["place"] = places[owner_id]
 
 	if row["head_shot"]:
 		url = row["head_shot"]
@@ -174,7 +203,7 @@ teams = ""
 with open(base_path + "html/templates/owner_team_detail.html") as file:
 	template = file.read()
 
-query = "SELECT * FROM ownersXseasons_current_view ORDER BY points DESC"
+query = "SELECT * FROM ownersXseasons_current_view ORDER BY place ASC"
 
 print(query)
 
@@ -184,19 +213,23 @@ for row in rows:
 
 	owner_id = row["owner_id"]
 
-	place = places[owner_id]
-
 	this_team = template
 
 	row["season"] = season
 
 	row["link"] = str(season) + "_" + str(row["owner_id"])
 
-	row["place"] = make_ordinal(place)
+	row["place"] = make_ordinal(row["place"])
 
-	fields = ["bank", "link", "nickname", "salary", "place", "points", "recent", "season", "team_name", "yesterday"]
+	int_fields = ["points", "recent", "yesterday"]
+
+	fields = int_fields + ["bank", "link", "nickname", "salary", "place", "season", "team_name"]
 
 	for field in fields:
+
+		if field in int_fields and int(row[field]) < 0:
+			row[field] = "N/A"
+
 		this_team = this_team.replace("{" + field + "}", str(row[field]))
 
 	query = f'SELECT * FROM oxrcXpos WHERE owner_id={row["owner_id"]}'
@@ -220,6 +253,9 @@ for row in rows:
 
 		if p["yesterday"] == -1:
 			p["yesterday"] = "N/A"
+
+		if p["value"] == -1:
+			p["value"] = "N/A"
 
 		this_player = player_template
 
@@ -252,325 +288,17 @@ content["teams"] = teams
 # most productive players - picked
 # {most_productive_players-picked}
 
-html = ""
+content["most_productive_players-picked"] = get_small_stats_table("points", "player", True)
+content["most_valuable_players-picked"] = get_small_stats_table("value", "player", True)
+content["most_popular_players"] = get_small_stats_table("picked", "player", True)
+content["most_productive_players-all"] = get_small_stats_table("points", "player", False)
+content["most_valuable_players-all"] = get_small_stats_table("value", "player", False)
+content["yesterday_top_owners"] = get_small_stats_table("yesterday", "owner")
+content["hot_owners"] = get_small_stats_table("recent", "owner")
+content["yesterday_top_players-picked"] = get_small_stats_table("yesterday", "player", True)
+content["hot_players-picked"] = get_small_stats_table("recent", "player", True)
 
-with open(base_path + "html/templates/player_row_tiny.html") as file:
-	template = file.read()
 
-query = "SELECT fnf, player_id, points FROM players_current_view WHERE picked > 0 ORDER BY points DESC LIMIT 5"
-
-print(query)
-
-rows = get_rows(query)
-
-i = 0
-
-for row in rows:
-	i += 1
-
-	this_player = template
-
-	vals = {
-		"rank": i,
-		"player_id": row["player_id"],
-		"fnf": row["fnf"],
-		"cat_val": row["points"]
-	}
-
-	for val in vals:
-		this_player = this_player.replace("{" + val + "}", str(vals[val]))
-
-	html += this_player + "\n"
-
-content["most_productive_players-picked"] = html
-
-###################################################
-# most productive players - picked
-# {most_valuable_players-picked}
-
-html = ""
-
-with open(base_path + "html/templates/player_row_tiny.html") as file:
-	template = file.read()
-
-query = "SELECT fnf, player_id, value FROM players_current_view WHERE picked > 0 ORDER BY value DESC LIMIT 5"
-
-print(query)
-
-rows = get_rows(query)
-
-i = 0
-
-for row in rows:
-	i += 1
-
-	this_player = template
-
-	vals = {
-		"rank": i,
-		"player_id": row["player_id"],
-		"fnf": row["fnf"],
-		"cat_val": row["value"]
-	}
-
-	for val in vals:
-		this_player = this_player.replace("{" + val + "}", str(vals[val]))
-
-	html += this_player + "\n"
-
-content["most_valuable_players-picked"] = html
-
-###################################################
-# most productive players - picked
-# {most_popular_players}
-
-html = ""
-
-with open(base_path + "html/templates/player_row_tiny.html") as file:
-	template = file.read()
-
-query = "SELECT fnf, player_id, picked FROM players_current_view ORDER BY picked DESC LIMIT 5"
-
-print(query)
-
-rows = get_rows(query)
-
-i = 0
-
-for row in rows:
-	i += 1
-
-	this_player = template
-
-	vals = {
-		"rank": i,
-		"player_id": row["player_id"],
-		"fnf": row["fnf"],
-		"cat_val": row["picked"]
-	}
-
-	for val in vals:
-		this_player = this_player.replace("{" + val + "}", str(vals[val]))
-
-	html += this_player + "\n"
-
-content["most_popular_players"] = html
-
-###################################################
-# most productive players - all
-# {most_productive_players-all}
-
-html = ""
-
-with open(base_path + "html/templates/player_row_tiny.html") as file:
-	template = file.read()
-
-query = "SELECT fnf, player_id, points FROM players_current_view ORDER BY points DESC LIMIT 5"
-
-print(query)
-
-rows = get_rows(query)
-
-i = 0
-
-for row in rows:
-	i += 1
-
-	this_player = template
-
-	vals = {
-		"rank": i,
-		"player_id": row["player_id"],
-		"fnf": row["fnf"],
-		"cat_val": row["points"]
-	}
-
-	for val in vals:
-		this_player = this_player.replace("{" + val + "}", str(vals[val]))
-
-	html += this_player + "\n"
-
-content["most_productive_players-all"] = html
-
-###################################################
-# most valuable players - all
-# {most_valuable_players-all}
-
-html = ""
-
-with open(base_path + "html/templates/player_row_tiny.html") as file:
-	template = file.read()
-
-query = "SELECT fnf, player_id, value FROM players_current_view ORDER BY value DESC LIMIT 5"
-
-print(query)
-
-rows = get_rows(query)
-
-i = 0
-
-for row in rows:
-	i += 1
-
-	this_player = template
-
-	vals = {
-		"rank": i,
-		"player_id": row["player_id"],
-		"fnf": row["fnf"],
-		"cat_val": row["value"]
-	}
-
-	for val in vals:
-		this_player = this_player.replace("{" + val + "}", str(vals[val]))
-
-	html += this_player + "\n"
-
-content["most_valuable_players-all"] = html
-
-###################################################
-# yesterday's top owners
-# {yesterday_top_owners}
-
-html = ""
-
-with open(base_path + "html/templates/owner_row_tiny.html") as file:
-	template = file.read()
-
-query = "SELECT nickname, owner_id, yesterday FROM ownersXseasons_current_view ORDER BY yesterday DESC, nickname ASC LIMIT 5"
-
-print(query)
-
-rows = get_rows(query)
-
-i = 0
-
-for row in rows:
-	i += 1
-
-	this_player = template
-
-	vals = {
-		"rank": i,
-		"owner_id": row["owner_id"],
-		"nickname": row["nickname"],
-		"cat_val": row["yesterday"]
-	}
-
-	for val in vals:
-		this_player = this_player.replace("{" + val + "}", str(vals[val]))
-
-	html += this_player + "\n"
-
-content["yesterday_top_owners"] = html
-
-###################################################
-# hot owners
-# {hot_owners}
-
-html = ""
-
-with open(base_path + "html/templates/owner_row_tiny.html") as file:
-	template = file.read()
-
-query = "SELECT nickname, owner_id, recent FROM ownersXseasons_current_view ORDER BY recent DESC, nickname ASC LIMIT 5"
-
-print(query)
-
-rows = get_rows(query)
-
-i = 0
-
-for row in rows:
-	i += 1
-
-	this_player = template
-
-	vals = {
-		"rank": i,
-		"owner_id": row["owner_id"],
-		"nickname": row["nickname"],
-		"cat_val": row["recent"]
-	}
-
-	for val in vals:
-		this_player = this_player.replace("{" + val + "}", str(vals[val]))
-
-	html += this_player + "\n"
-
-content["hot_owners"] = html
-
-###################################################
-# yesterday's top players
-# {yesterday_top_players}
-
-html = ""
-
-with open(base_path + "html/templates/player_row_tiny.html") as file:
-	template = file.read()
-
-query = "SELECT fnf, player_id, yesterday FROM players_current_view ORDER BY yesterday DESC, lnf ASC LIMIT 5"
-
-print(query)
-
-rows = get_rows(query)
-
-i = 0
-
-for row in rows:
-	i += 1
-
-	this_player = template
-
-	vals = {
-		"rank": i,
-		"player_id": row["player_id"],
-		"fnf": row["fnf"],
-		"cat_val": row["yesterday"]
-	}
-
-	for val in vals:
-		this_player = this_player.replace("{" + val + "}", str(vals[val]))
-
-	html += this_player + "\n"
-
-content["yesterday_top_players"] = html
-
-###################################################
-# hot players
-# {hot_players}
-
-html = ""
-
-with open(base_path + "html/templates/player_row_tiny.html") as file:
-	template = file.read()
-
-query = "SELECT fnf, player_id, recent FROM players_current_view ORDER BY recent DESC, lnf ASC LIMIT 5"
-
-print(query)
-
-rows = get_rows(query)
-
-i = 0
-
-for row in rows:
-	i += 1
-
-	this_player = template
-
-	vals = {
-		"rank": i,
-		"player_id": row["player_id"],
-		"fnf": row["fnf"],
-		"cat_val": row["recent"]
-	}
-
-	for val in vals:
-		this_player = this_player.replace("{" + val + "}", str(vals[val]))
-
-	html += this_player + "\n"
-
-content["hot_players"] = html
 
 ###################################################
 # last updated
