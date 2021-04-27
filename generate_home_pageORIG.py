@@ -7,12 +7,12 @@ import mysql.connector
 from mysql.connector import Error
 import os
 
-###################################################
 
-base_path = ""
+import includes.dbconn
 
-if os.getcwd() == "/home/tomgsmith99":
-	base_path = "/home/tomgsmith99/bin/baseball_generate_pages/"
+from includes.dbconn import connection
+
+exit()
 
 ###################################################
 
