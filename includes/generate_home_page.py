@@ -1,9 +1,11 @@
+#!/usr/bin/python3
+
 import datetime
 
-import includes.dbconn
+###################################################
+
 from includes.dbconn import get_row, get_rows
 
-import includes.write_files
 from includes.write_files import write_to_local_disk
 from includes.write_files import write_to_s3
 
@@ -279,11 +281,11 @@ def get_owner_rows_summary(connection, season):
 
 	return owner_rows_summary
 
-def generate_home_page(connection, season, s3):
+def generate_home_page(connection, season, s3, push_to_s3):
 
 	content = get_home_page_content(connection, season)
 
 	write_to_local_disk(content, "home", season)
 
-	write_to_s3(content, "home", season, s3)
-
+	if push_to_s3:
+		write_to_s3(content, "home", season, s3)

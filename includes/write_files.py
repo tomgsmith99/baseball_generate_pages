@@ -1,22 +1,29 @@
 
 import datetime
 
+local_home = "html/output/"
+
+remote_home = ""
+
 def write_to_local_disk(content, page, season):
 
-	paths = {
-		"home": "html/output/index.html",
-		"players": f'html/output/seasons/{season}/players/index.html'
-	}
+	if page == "home":
+		local_path = local_home
+	else:
+		local_path = local_home + f'seasons/{season}/{page}/'
 
-	f = open(paths[page], "w")
+	local_path += "index.html"
+
+	f = open(local_path, "w")
 	f.write(content)
 	f.close()
 
 def write_to_s3(content, page, season, s3):
-	keys = {
-		"home": "index.html",
-		"players": f'seasons/{season}/players/index.html'
-	}
+
+	if page == "home":
+		remote_path = remote_home
+	else:
+		remote_path = remote_home + f'seasons/{season}/{page}/'
 
 	x = datetime.datetime.now()
 
@@ -24,5 +31,9 @@ def write_to_s3(content, page, season, s3):
 
 	filename = filename_base + ".html"
 
-	s3.Bucket('baseball-dev.tomgsmith.com').put_object(Key=keys[page], Body=content, ContentType='text/html', ACL='public-read')
-	s3.Bucket('baseball-dev.tomgsmith.com').put_object(Key='backup/' + filename, Body=content, ContentType='text/html', ACL='public-read')
+	live_path = remote_path + "index.html"
+
+	backup_path = "backup/" + remote_path + filename
+
+	s3.Bucket('baseball-dev.tomgsmith.com').put_object(Key=live_path, Body=content, ContentType='text/html', ACL='public-read')
+	s3.Bucket('baseball-dev.tomgsmith.com').put_object(Key=backup_path, Body=content, ContentType='text/html', ACL='public-read')
