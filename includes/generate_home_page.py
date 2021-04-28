@@ -3,6 +3,10 @@ import datetime
 import includes.dbconn
 from includes.dbconn import get_row, get_rows
 
+import includes.write_files
+from includes.write_files import write_to_local_disk
+from includes.write_files import write_to_s3
+
 ###################################################
 
 def get_small_stats_table(column, person_type, picked_only=True):
@@ -275,35 +279,11 @@ def get_owner_rows_summary(connection, season):
 
 	return owner_rows_summary
 
-def write_to_local(content, page):
-
-	paths = {
-		"home": "html/output/index.html"
-	}
-
-	f = open(paths[page], "w")
-	f.write(content)
-	f.close()
-
-def write_to_s3(content, page, s3):
-
-	keys = {
-		"home": "index.html"
-	}
-
-	x = datetime.datetime.now()
-
-	filename_base = x.strftime("%Y_%m_%d_%H_%M_%S")
-
-	filename = filename_base + ".html"
-
-	s3.Bucket('baseball.tomgsmith.com').put_object(Key=keys[page], Body=content, ContentType='text/html', ACL='public-read')
-	s3.Bucket('baseball.tomgsmith.com').put_object(Key='backup/' + filename, Body=content, ContentType='text/html', ACL='public-read')
-
 def generate_home_page(connection, season, s3):
 
 	content = get_home_page_content(connection, season)
 
-	write_to_local(content, "home")
+	write_to_local_disk(content, "home", season)
 
-	# write_to_s3(content, "home", s3)
+	write_to_s3(content, "home", season, s3)
+

@@ -12,6 +12,7 @@ from includes.dbconn import connection, cursor, get_row, get_rows, pcursor
 
 import includes.generate_home_page
 from includes.generate_home_page import generate_home_page
+from includes.generate_players_page import generate_players_page
 
 ###################################################
 

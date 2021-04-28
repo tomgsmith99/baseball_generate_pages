@@ -5,6 +5,7 @@ from includes.dbconn import get_row, get_rows
 
 import includes.write_files
 from includes.write_files import write_to_local_disk
+from includes.write_files import write_to_s3
 
 ###################################################
 
@@ -17,7 +18,7 @@ def get_players_page_content(connection, season):
 
 	content["title"] = "Players"
 
-	query = "SELECT * FROM players_current_view WHERE season=$season ORDER BY points DESC, lnf ASC"
+	query = f'SELECT * FROM players_current_view WHERE season={season} ORDER BY points DESC, lnf ASC'
 
 	html = ""
 
@@ -70,20 +71,18 @@ def generate_players_page(connection, season, s3):
 
 	write_to_local_disk(content, "players", season)
 
-
-
-###################################################
-
-
-
-f = open(base_path + "html/output/players.html", "w")
-f.write(players_page)
-f.close()
+	write_to_s3(content, "players", season, s3)
 
 ###################################################
 
-s3.Bucket('baseball.tomgsmith.com').put_object(Key='seasons/' + str(season) + '/players/index.html', Body=players_page, ContentType='text/html', ACL='public-read')
-s3.Bucket('baseball.tomgsmith.com').put_object(Key='backup/players/' + filename, Body=players_page, ContentType='text/html', ACL='public-read')
+# f = open(base_path + "html/output/players.html", "w")
+# f.write(players_page)
+# f.close()
+
+###################################################
+
+# s3.Bucket('baseball.tomgsmith.com').put_object(Key='seasons/' + str(season) + '/players/index.html', Body=players_page, ContentType='text/html', ACL='public-read')
+# s3.Bucket('baseball.tomgsmith.com').put_object(Key='backup/players/' + filename, Body=players_page, ContentType='text/html', ACL='public-read')
 
 # def get_small_stats_table(column, person_type, picked_only=True):
 
