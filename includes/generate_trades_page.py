@@ -83,11 +83,12 @@ def get_trades_content(connection, season):
 
 	return base
 
-def generate_trades_page(connection, season, s3, push_to_s3):
+def generate_trades_page(connection, season, s3, push_to_s3, create_local_files):
 
 	content = get_trades_content(connection, season)
 
-	write_to_local_disk(content, "trades", season)
+	if create_local_files:
+		write_to_local_disk(content, "trades", season)
 
 	if push_to_s3:
 		write_to_s3(content, "trades", season, s3)

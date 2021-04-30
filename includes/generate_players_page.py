@@ -37,6 +37,9 @@ def get_players_page_content(connection, season):
 		if row["yesterday"] == -1:
 			row["yesterday"] = "N/A"
 
+		if row["value"] == -1:
+			row["value"] = "N/A"
+
 		player_id = row["player_id"]
 
 		fnf = row["fnf"]
@@ -67,11 +70,29 @@ def get_players_page_content(connection, season):
 
 	return players_page
 
-def generate_players_page(connection, season, s3, push_to_s3):
+def generate_players_page(connection, season, s3, push_to_s3, create_local_files):
+
+	query = f'SELECT * FROM players_current_view WHERE season={season} ORDER BY lnf'
+
+	print(query)
+
+	rows = get_rows(query)
+
+	with open("html/templates/trade_row.html") as file:
+		template = file.read()
+
+	vals = ["added_player_fnf", "date", "dropped_player_fnf", "nickname", "pos"]
+
+	table_rows = ""
+
+	for row in rows:
+
+		print(row)
 
 	content = get_players_page_content(connection, season)
 
-	write_to_local_disk(content, "players", season)
+	if create_local_files:
+		write_to_local_disk(content, "players", season)
 
 	if push_to_s3:
 		write_to_s3(content, "players", season, s3)
