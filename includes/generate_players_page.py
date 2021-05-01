@@ -37,6 +37,9 @@ def get_players_page_content(connection, season):
 		if row["yesterday"] == -1:
 			row["yesterday"] = "N/A"
 
+		if row["value"] == -1:
+			row["value"] = "N/A"
+
 		player_id = row["player_id"]
 
 		fnf = row["fnf"]
