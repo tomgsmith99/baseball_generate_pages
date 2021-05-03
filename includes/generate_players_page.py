@@ -18,7 +18,7 @@ def get_players_page_content(connection, season):
 		"page_generated": datetime.datetime.now()
 	}
 
-	content["title"] = "Players"
+	content["title"] = f'Baseball {season}: Players'
 
 	query = f'SELECT * FROM players_current_view WHERE season={season} ORDER BY points DESC, lnf ASC'
 
@@ -39,6 +39,8 @@ def get_players_page_content(connection, season):
 
 		if row["value"] == -1:
 			row["value"] = "N/A"
+
+		row["salary"] = "$" + str(row["salary"])
 
 		player_id = row["player_id"]
 

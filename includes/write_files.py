@@ -1,16 +1,25 @@
 
 import datetime
 
-local_home = "html/output/"
+import os.path
+
+local_home = "/Users/tomsmith/projects/baseball_local_static/public/"
 
 remote_home = ""
 
-def write_to_local_disk(content, page, season):
+def write_to_local_disk(content, page, season, obj_id=0):
 
 	if page == "home":
 		local_path = local_home
+	elif page == "player":
+		local_path = local_home + f'players/{obj_id}/'
 	else:
 		local_path = local_home + f'seasons/{season}/{page}/'
+
+	# create the local path if it does not exist
+
+	if not os.path.isdir(local_path):
+		os.mkdir(local_path) 
 
 	local_path += "index.html"
 
@@ -18,22 +27,26 @@ def write_to_local_disk(content, page, season):
 	f.write(content)
 	f.close()
 
-def write_to_s3(content, page, season, s3):
+def write_to_s3(content, page, season, s3, obj_id=0):
 
 	if page == "home":
 		remote_path = remote_home
+	elif page == "player":
+		remote_path = remote_home + f'players/{obj_id}/'
 	else:
 		remote_path = remote_home + f'seasons/{season}/{page}/'
 
-	x = datetime.datetime.now()
-
-	filename_base = x.strftime("%Y_%m_%d_%H_%M_%S")
-
-	filename = filename_base + ".html"
-
 	live_path = remote_path + "index.html"
 
-	backup_path = "backup/" + remote_path + filename
-
 	s3.Bucket('baseball-dev.tomgsmith.com').put_object(Key=live_path, Body=content, ContentType='text/html', ACL='public-read')
-	s3.Bucket('baseball-dev.tomgsmith.com').put_object(Key=backup_path, Body=content, ContentType='text/html', ACL='public-read')
+
+	if page == "home" or page == "players":
+		x = datetime.datetime.now()
+
+		filename_base = x.strftime("%Y_%m_%d_%H_%M_%S")
+
+		filename = filename_base + ".html"
+
+		backup_path = "backup/" + remote_path + filename
+
+		s3.Bucket('baseball-dev.tomgsmith.com').put_object(Key=backup_path, Body=content, ContentType='text/html', ACL='public-read')

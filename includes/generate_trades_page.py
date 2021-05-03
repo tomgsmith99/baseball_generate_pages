@@ -73,7 +73,7 @@ def get_trades_content(connection, season):
 	with open("html/templates/base.html") as file:
 		base = file.read()
 
-	base = base.replace("{title}", "Trades")
+	base = base.replace("{title}", f'Baseball {season}: Trades')
 
 	base = base.replace("{page_generated}", str(content["page_generated"]))
 

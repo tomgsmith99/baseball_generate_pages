@@ -1,0 +1,63 @@
+
+	<h3 style="margin-top:10px">{fnf}</h3>
+
+	<p><a target = '_blank' href = '{stats_url}'>ESPN stats page</a></p>
+
+	<div class="row">
+
+		<div class="col-6">
+
+			<p>Most recent appearance (in this league): {most_recent_appearance}</p>
+			<p>Rookie year (in this league): {rookie_year}</p>
+			<p>Most points ever: {most_points} ({most_points_year})</p>
+			<p>Least points ever (except 2020): {least_points} ({least_points_year})</p>
+
+		</div>
+
+		<div class="col-6">
+			<table class="table table-striped table-bordered table-sm">
+
+				<tbody>
+					<tr>
+						<td style="text-align: left">Most often drafted by:</td>
+					<tr>
+
+					<tr>
+						<td>{most_often_drafted_by}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div class="row">
+
+		<div class="col-12">
+
+			<p><b>All-time</b></p>
+
+			<table class="table table-striped table-bordered table-sm">
+
+				<thead>
+					<tr>
+						<th>Season</th>
+						<th>POS</th>
+						<th class="text-center">Team</th>
+						<th class="text-center">Salary</th>
+						<th class="text-center">Pts</th>
+						<th class="text-center">Val</th>
+						<th class="text-center">Drafted</th>
+						<th style="text-align: left">Drafted by</th>
+					</tr>
+				</thead>
+
+				<tbody>
+					{all_time_rows}
+				</tbody>
+
+			</table>
+		</div>
+
+<!-- 		<div class="col-4">
+		</div> -->
+	</div>

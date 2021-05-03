@@ -107,7 +107,7 @@ def get_home_page_content(connection, season):
 
 	###################################################
 
-	content["title"] = "Standings"
+	content["title"] = f'Baseball {season}: Standings'
 
 	with open("html/templates/base.html") as file:
 		base = file.read()
