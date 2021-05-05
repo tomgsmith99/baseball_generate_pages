@@ -107,7 +107,7 @@ def get_home_page_content(connection, season):
 
 	###################################################
 
-	content["title"] = "Standings"
+	content["title"] = f'Baseball {season}: Standings'
 
 	with open("html/templates/base.html") as file:
 		base = file.read()
@@ -281,11 +281,12 @@ def get_owner_rows_summary(connection, season):
 
 	return owner_rows_summary
 
-def generate_home_page(connection, season, s3, push_to_s3):
+def generate_home_page(connection, season, s3, push_to_s3, create_local_files):
 
 	content = get_home_page_content(connection, season)
 
-	write_to_local_disk(content, "home", season)
+	if create_local_files:
+		write_to_local_disk(content, "home", season)
 
 	if push_to_s3:
 		write_to_s3(content, "home", season, s3)
