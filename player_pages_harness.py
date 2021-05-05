@@ -7,7 +7,7 @@ from mysql.connector import Error
 
 from includes.dbconn import connection
 
-from includes.generate_players_pages import generate_players_pages
+from includes.generate_player_pages import generate_player_pages
 
 ###################################################
 
@@ -23,6 +23,6 @@ s3 = boto3.resource('s3')
 push_to_s3 = env["push_to_s3"]
 create_local_files = env["create_local_files"]
 
-generate_players_pages(connection, season, s3, push_to_s3, create_local_files)
+generate_player_pages(connection, season, s3, push_to_s3, create_local_files)
 
 exit()

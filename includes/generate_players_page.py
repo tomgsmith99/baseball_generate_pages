@@ -40,6 +40,9 @@ def get_players_page_content(connection, season):
 		if row["value"] == -1:
 			row["value"] = "N/A"
 
+		if row["pos"] == "C":
+			row["pos"] = "C2"
+
 		row["salary"] = "$" + str(row["salary"])
 
 		player_id = row["player_id"]
@@ -53,6 +56,7 @@ def get_players_page_content(connection, season):
 		vals = ["points", "name_with_link", "pos", "yesterday", "recent", "salary", "team", "value", "drafted", "picked"]
 
 		for val in vals:
+
 			this_player = this_player.replace("{" + val + "}", str(row[val]))
 
 		html += this_player + "\n"

@@ -36,7 +36,7 @@ def get_all_time_rows(connection, player_id):
 
 		##########################
 
-		html_row = "<tr><td>{season}</td><td>{pos}</td><td>{team}</td><td>{salary}</td><td>{points}</td><td>{value}</td><td>{drafted}</td><td>{drafted_by}</td></tr>"
+		html_row = "<tr><td align='center'>{season}</td><td align='center'>{pos}</td><td align='center'>{team}</td><td align='right'>${salary}</td><td align='right'>{points}</td><td align='center'>{value}</td><td align='center'>{drafted}</td><td>{drafted_by}</td></tr>"
 
 		for val in row:
 
@@ -115,9 +115,63 @@ def get_owners(player_id, season):
 
 	return rows
 
-def get_player_content(connection, season, s3, push_to_s3, create_local_files, player_id):
+def get_rookie_year(player_id, season):
 
-	query = f'SELECT * FROM players_view WHERE player_id={player_id}'
+	query = f'SELECT rookie_year FROM players_rookie_year WHERE player_id={player_id}'
+
+	print(query)
+
+	row = get_row(query)
+
+	if row:
+		return row["rookie_year"]
+
+	query = f'SELECT year_added FROM players WHERE player_id={player_id}'
+
+	print(query)
+
+	row = get_row(query)
+
+	return row["year_added"]
+
+	print("could not find a rookie year for this player.")
+
+	exit()
+
+def get_worst_year(player_id):
+
+	obj = {}
+
+	query = f'SELECT MIN(points) AS points, season FROM players_all_time WHERE player_id={player_id} AND season != 2020 GROUP BY player_id'
+
+	print(query)
+
+	row = get_row(query)
+
+	if row:
+		obj["points"] = row["points"]
+		obj["season"] = row["season"]
+
+		return obj
+
+	query = f'SELECT MIN(points) AS points, season FROM players_all_time WHERE player_id={player_id} GROUP BY player_id'
+
+	print(query)
+
+	row = get_row(query)
+
+	if row:
+		obj["points"] = row["points"]
+		obj["season"] = row["season"]
+
+		return obj
+
+	obj["points"] = "N/A"
+	obj["season"] = "-"
+
+	return obj
+
+def get_player_content(connection, season, s3, push_to_s3, create_local_files, player_id):
 
 	query = f'SELECT * FROM players_view WHERE player_id={player_id}'
 
@@ -125,13 +179,36 @@ def get_player_content(connection, season, s3, push_to_s3, create_local_files, p
 
 	player = get_row(query)
 
-	print(player)
+	if not player:
 
-	player["all_time_rows"] = get_all_time_rows(connection, player["player_id"])
+		rookie_year = get_rookie_year(player_id, season)
 
-	player["most_often_drafted_by"] = get_most_drafted_by(connection, player["player_id"])
+		print("the rookie year is: " + str(rookie_year))
 
-	player["most_recent_appearance"] = get_most_recent_appearance(connection, player["player_id"])
+		query = f'SELECT fnf FROM players WHERE player_id={player_id}'
+
+		print(query)
+
+		row = get_row(query)
+
+		player = {
+			"fnf": row["fnf"],
+			"most_points": "N/A",
+			"most_points_year": "-",
+			"rookie_year": rookie_year
+		}
+
+	worst_year = get_worst_year(player_id)
+
+	player["least_points"] = worst_year["points"]
+
+	player["least_points_year"] = worst_year["season"]
+
+	player["all_time_rows"] = get_all_time_rows(connection, player_id)
+
+	player["most_often_drafted_by"] = get_most_drafted_by(connection, player_id)
+
+	player["most_recent_appearance"] = get_most_recent_appearance(connection, player_id)
 
 	##################
 
@@ -159,11 +236,15 @@ def generate_player_page(connection, season, s3, push_to_s3, create_local_files,
 	if push_to_s3:
 		write_to_s3(content, "player", season, s3, player_id)
 
-def generate_players_pages(connection, season, s3, push_to_s3, create_local_files):
+def generate_player_pages(connection, season, s3, push_to_s3, create_local_files):
 
 	query = f'SELECT * FROM players_current_view WHERE season={season} ORDER BY lnf'
 
-	# query = f'SELECT player_id FROM players_current_view WHERE season={season} AND player_id=1685 ORDER BY lnf'
+	# query = f'SELECT player_id FROM players_current_view WHERE season={season} AND player_id=5016 ORDER BY lnf'
+
+	# if player_id == 5016:
+
+	# 	exit()
 
 	print(query)
 

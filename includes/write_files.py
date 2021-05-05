@@ -1,11 +1,18 @@
 
 import datetime
-
+import json
 import os.path
+
+#######################################
 
 local_home = "/Users/tomsmith/projects/baseball_local_static/public/"
 
 remote_home = ""
+
+#######################################
+
+with open('.env.json') as json_file:
+	env = json.load(json_file)
 
 def write_to_local_disk(content, page, season, obj_id=0):
 
@@ -19,7 +26,7 @@ def write_to_local_disk(content, page, season, obj_id=0):
 	# create the local path if it does not exist
 
 	if not os.path.isdir(local_path):
-		os.mkdir(local_path) 
+		os.mkdir(local_path)
 
 	local_path += "index.html"
 
@@ -28,6 +35,8 @@ def write_to_local_disk(content, page, season, obj_id=0):
 	f.close()
 
 def write_to_s3(content, page, season, s3, obj_id=0):
+
+	s3_bucket = env["s3_bucket"]
 
 	if page == "home":
 		remote_path = remote_home
@@ -38,7 +47,7 @@ def write_to_s3(content, page, season, s3, obj_id=0):
 
 	live_path = remote_path + "index.html"
 
-	s3.Bucket('baseball-dev.tomgsmith.com').put_object(Key=live_path, Body=content, ContentType='text/html', ACL='public-read')
+	s3.Bucket(s3_bucket).put_object(Key=live_path, Body=content, ContentType='text/html', ACL='public-read')
 
 	if page == "home" or page == "players":
 		x = datetime.datetime.now()
@@ -49,4 +58,4 @@ def write_to_s3(content, page, season, s3, obj_id=0):
 
 		backup_path = "backup/" + remote_path + filename
 
-		s3.Bucket('baseball-dev.tomgsmith.com').put_object(Key=backup_path, Body=content, ContentType='text/html', ACL='public-read')
+		s3.Bucket(s3_bucket).put_object(Key=backup_path, Body=content, ContentType='text/html', ACL='public-read')
