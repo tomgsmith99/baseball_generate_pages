@@ -36,6 +36,6 @@ generate_players_page(connection, season, s3, push_to_s3, create_local_files)
 
 generate_trades_page(connection, season, s3, push_to_s3, create_local_files)
 
-# generate_player_pages(connection, season, s3, push_to_s3, create_local_files)
+generate_player_pages(connection, season, s3, push_to_s3, create_local_files)
 
 exit()
