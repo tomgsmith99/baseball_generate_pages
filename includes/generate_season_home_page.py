@@ -11,23 +11,54 @@ from includes.write_files import write_to_s3
 
 ###################################################
 
-def get_small_stats_table(column, person_type, picked_only=True, season):
+def generate_season_nav_page(connection, s3, env):
+
+	content = "<p>Seasons</p>"
+
+	# content["title"] = f'Baseball seasons'
+
+	with open("html/templates/base.html") as file:
+		base = file.read()
+
+	query = 'SELECT season FROM seasons ORDER BY season ASC'
+
+	print(query)
+
+	rows = get_rows(query)
+
+	for row in rows:
+
+		content += f'<p><a href = "/seasons/{row["season"]}">{row["season"]}</a></p>\n'
+
+	page = base.replace("{main}", content)
+
+	page = page.replace("{title}", "Baseball seasons")
+
+	page = page.replace("{page_generated}", str(datetime.datetime.now()))
+
+	if env["create_local_files"]:
+		write_to_local_disk(page, "season_nav", 0)
+
+	if env["push_to_s3"]:
+		write_to_s3(page, "season_nav", 0, s3)
+
+def get_small_stats_table(column, person_type, picked_only, season):
 
 	html = ""
 
 	if person_type == "player":
 		with open("html/templates/player_row_tiny.html") as file:
 			template = file.read()
-		query = f'SELECT fnf, player_id, {column} FROM players_current_view'
+		query = f'SELECT fnf, player_id, {column} FROM player_x_season_detail WHERE season = {season}'
 
 		if picked_only:
-			query += ' WHERE picked > 0'
+			query += ' AND picked > 0'
 
 		query += f' ORDER BY {column} DESC'
 	else:
 		with open("html/templates/owner_row_tiny.html") as file:
 			template = file.read()
-		query = f'SELECT nickname, owner_id, {column} FROM ownersXseasons_current_view ORDER BY {column} DESC, nickname ASC'
+		query = f'SELECT nickname, owner_id, {column} FROM ownersXseasons_detail WHERE season = {season} ORDER BY {column} DESC, nickname ASC'
 
 	query += ' LIMIT 5'
 
@@ -73,7 +104,7 @@ def make_ordinal(n):
 		suffix = 'th'
 	return str(n) + suffix
 
-def get_home_page_content(connection, season, archive_home_page):
+# def get_home_page_content(connection, season, archive_home_page):
 
 	content = {
 		"season": season,
@@ -93,17 +124,17 @@ def get_home_page_content(connection, season, archive_home_page):
 	content["teams"] = get_owner_detailed_teams(connection, season)
 
 	###################################################
-	content["most_productive_players-picked"] = get_small_stats_table("points", "player", True)
-	content["most_valuable_players-picked"] = get_small_stats_table("value", "player", True)
-	content["most_popular_players"] = get_small_stats_table("picked", "player", True)
-	content["most_productive_players-all"] = get_small_stats_table("points", "player", False)
-	content["most_valuable_players-all"] = get_small_stats_table("value", "player", False)
+	content["most_productive_players-picked"] = get_small_stats_table("points", "player", True, season)
+	content["most_valuable_players-picked"] = get_small_stats_table("value", "player", True, season)
+	content["most_popular_players"] = get_small_stats_table("picked", "player", True, season)
+	content["most_productive_players-all"] = get_small_stats_table("points", "player", False, season)
+	content["most_valuable_players-all"] = get_small_stats_table("value", "player", False, season)
 
 	if not archive_home_page:
-		content["yesterday_top_owners"] = get_small_stats_table("yesterday", "owner")
-		content["hot_owners"] = get_small_stats_table("recent", "owner")
-		content["yesterday_top_players-picked"] = get_small_stats_table("yesterday", "player", True)
-		content["hot_players-picked"] = get_small_stats_table("recent", "player", True)
+		content["yesterday_top_owners"] = get_small_stats_table("yesterday", "owner", True, season)
+		content["hot_owners"] = get_small_stats_table("recent", "owner", True, season)
+		content["yesterday_top_players-picked"] = get_small_stats_table("yesterday", "player", True, season)
+		content["hot_players-picked"] = get_small_stats_table("recent", "player", True, season)
 		content["last_updated"] = get_last_updated(connection, season)
 
 	###################################################
@@ -128,10 +159,11 @@ def get_home_page_content(connection, season, archive_home_page):
 
 	return home
 
-def get_season_page_content(connection, season):
+def get_season_home_page_content(connection, season, season_is_current):
 
 	content = {
-		"season": season
+		"season": season,
+		"page_generated": datetime.datetime.now()
 	}
 
 	###################################################
@@ -144,18 +176,24 @@ def get_season_page_content(connection, season):
 
 	###################################################
 	# owner detailed teams
-	content["teams"] = get_owner_detailed_teams(connection, season)
-
-	print(content["teams"])
-
-	exit()
+	content["teams"] = get_owner_detailed_teams(connection, season, season_is_current)
 
 	###################################################
-	content["most_productive_players-picked"] = get_small_stats_table("points", "player", True)
-	content["most_valuable_players-picked"] = get_small_stats_table("value", "player", True)
-	content["most_popular_players"] = get_small_stats_table("picked", "player", True)
-	content["most_productive_players-all"] = get_small_stats_table("points", "player", False)
-	content["most_valuable_players-all"] = get_small_stats_table("value", "player", False)
+	content["most_productive_players-picked"] = get_small_stats_table("points", "player", True, season)
+	content["most_valuable_players-picked"] = get_small_stats_table("value", "player", True, season)
+	content["most_popular_players"] = get_small_stats_table("picked", "player", True, season)
+	content["most_productive_players-all"] = get_small_stats_table("points", "player", False, season)
+	content["most_valuable_players-all"] = get_small_stats_table("value", "player", False, season)
+
+	if season_is_current:
+		content["yesterday_top_owners"] = get_small_stats_table("yesterday", "owner", True, season)
+		content["hot_owners"] = get_small_stats_table("recent", "owner", True, season)
+		content["yesterday_top_players-picked"] = get_small_stats_table("yesterday", "player", True, season)
+		content["hot_players-picked"] = get_small_stats_table("recent", "player", True, season)
+		content["last_updated"] = get_last_updated(connection, season)
+		content["make_a_trade"] = "inline"
+	else:
+		content["make_a_trade"] = "none"
 
 	###################################################
 
@@ -164,8 +202,7 @@ def get_season_page_content(connection, season):
 	with open("html/templates/base.html") as file:
 		base = file.read()
 
-	with open("html/templates/season.html") as file:
-		season_page = file.read()
+	season_page = get_season_template(season)
 
 	season_page = base.replace("{main}", season_page)
 
@@ -173,7 +210,6 @@ def get_season_page_content(connection, season):
 		season_page = season_page.replace("{" + chunk + "}", str(content[chunk]))
 
 	return season_page
-
 
 def get_last_updated(connection, season):
 
@@ -187,7 +223,7 @@ def get_last_updated(connection, season):
 
 def get_owner_detailed_team(connection, season, owner_id):
 
-	query = f'SELECT * FROM owner_x_roster_detail WHERE owner_id={owner_id} AND season = {season}'
+	query = f'SELECT * FROM owner_x_roster_detail WHERE owner_id = {owner_id} AND season = {season}'
 	query += " ORDER BY o ASC, salary DESC"
 
 	print(query)
@@ -208,25 +244,25 @@ def get_owner_template(season_is_current):
 
 	return template
 
-def get_team_html(players):
+def get_roster_html(roster, season_is_current):
 
-	with open("html/templates/player_in_team.html") as file:
+	if season_is_current:
+		filename = "player_in_team_current.html"
+	else:
+		filename = "player_in_team_past.html"
+
+	with open("html/templates/" + filename) as file:
 		player_template = file.read()
 
 	active_html = ""
 
 	bench_html = ""
 
-	for p in players:
+	for p in roster:
 
-		if p["recent"] == -1:
-			p["recent"] = "N/A"
-
-		if p["yesterday"] == -1:
-			p["yesterday"] = "N/A"
-
-		if p["value"] == -1:
-			p["value"] = "N/A"
+		for f in p:
+			if p[f] == -1:
+				p[f] = "N/A"
 
 		this_player = player_template
 
@@ -250,10 +286,19 @@ def get_team_html(players):
 
 	return active_html + "\n" + bench_html
 
-	# this_team = this_team.replace("{active_html}", active_html)
-	# this_team = this_team.replace("{bench_html}", bench_html)
+def get_season_template(season):
 
-def get_owner_detailed_teams(connection, season, season_is_current = False):
+	if season < 2004:
+		filename = "season_old.html"
+	else:
+		filename = "season.html"
+
+	with open("html/templates/" + filename) as file:
+		season_page = file.read()
+
+	return season_page
+
+def get_owner_detailed_teams(connection, season, season_is_current):
 
 	teams = ""
 
@@ -273,6 +318,14 @@ def get_owner_detailed_teams(connection, season, season_is_current = False):
 
 		row["season"] = season
 
+		if row["team_name"]:
+			row["team_name"] = " - " + row["team_name"]
+
+		if row["bank"]:
+			row["bank"] = "bank: $" + str(row["bank"])
+		else:
+			row["bank"] = ""
+
 		row["link"] = str(season) + "_" + str(owner_id)
 
 		row["place"] = make_ordinal(row["place"])
@@ -288,11 +341,11 @@ def get_owner_detailed_teams(connection, season, season_is_current = False):
 
 			this_team = this_team.replace("{" + field + "}", str(row[field]))
 
-		players = get_owner_detailed_team(connection, season, owner_id)
+		roster = get_owner_detailed_team(connection, season, owner_id)
 
-		players_html = get_team_html(players)
+		roster_html = get_roster_html(roster, season_is_current)
 
-		this_team = this_team.replace("{players}", players_html)
+		this_team = this_team.replace("{roster}", roster_html)
 
 		teams += this_team
 
@@ -359,19 +412,19 @@ def get_owner_rows_summary(connection, season):
 
 	return owner_rows_summary
 
-def generate_home_page(connection, season, s3, env):
+# def generate_home_page(connection, season, s3, env):
 
-	content = get_home_page_content(connection, season, env["archive_home_page"])
+# 	content = get_home_page_content(connection, season, env["archive_home_page"])
 
-	if env["create_local_files"]:
-		write_to_local_disk(content, "home", season)
+# 	if env["create_local_files"]:
+# 		write_to_local_disk(content, "home", season)
 
-	if env["push_to_s3"]:
-		write_to_s3(content, "home", season, s3)
+# 	if env["push_to_s3"]:
+# 		write_to_s3(content, "home", season, s3)
 
-def generate_season_page(connection, season, s3, env):
+def generate_season_home_page(connection, season, season_is_current, s3, env):
 
-	content = get_season_page_content(connection, season)
+	content = get_season_home_page_content(connection, season, season_is_current)
 
 	if env["create_local_files"]:
 		write_to_local_disk(content, "season", season)

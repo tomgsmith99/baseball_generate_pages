@@ -15,22 +15,16 @@
 			<th class="text-center">Team</th>
 			<th class="text-center">Salary</th>
 			<th class="text-center">Pts</th>
-			<th class="text-center">Yday</th>
-			<th class="text-center">Rec</th>
 			<th class="text-center">Val</th>
 		</tr>
 	</thead>
 
 	<tbody>
-		{players}
-		{active_html}
-		{bench_html}
+		{roster}
 		<tr>
-			<td colspan="3" align="right">bank: ${bank}</td>
+			<td colspan="3" align="right">{bank}</td>
 			<td align="right"><b>${salary}</b></td>
 			<td align="right"><b>{points}</b></td>
-			<td align="right"><b>{yesterday}</b></td>
-			<td align="right"><b>{recent}</b></td>
 			<td align="right"><a href = "#top">top</a></td>
 		</tr>
 	</tbody>

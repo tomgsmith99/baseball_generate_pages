@@ -18,10 +18,31 @@ def write_to_local_disk(content, page, season, obj_id=0):
 
 	if page == "home":
 		local_path = local_home
+
 	elif page == "player":
+
+		if not os.path.isdir(local_home + "seasons"):
+			os.mkdir(local_home + "seasons")
+
 		local_path = local_home + f'players/{obj_id}/'
-	else:
-		local_path = local_home + f'seasons/{season}/{page}/'
+
+	elif page == "season":
+
+		if not os.path.isdir(local_home + "seasons"):
+			os.mkdir(local_home + "seasons")
+
+		local_path = local_home + f'seasons/{season}/'
+
+	elif page == "season_nav":
+
+		if not os.path.isdir(local_home + "seasons"):
+			os.mkdir(local_home + "seasons")
+
+		local_path = local_home + f'seasons/'
+
+
+	# else:
+	# 	local_path = local_home + f'seasons/{season}/{page}/'
 
 	# create the local path if it does not exist
 
@@ -42,8 +63,10 @@ def write_to_s3(content, page, season, s3, obj_id=0):
 		remote_path = remote_home
 	elif page == "player":
 		remote_path = remote_home + f'players/{obj_id}/'
-	else:
-		remote_path = remote_home + f'seasons/{season}/{page}/'
+	elif page == "season":
+		remote_path = remote_home + f'seasons/{obj_id}/'
+	# else:
+	# 	remote_path = remote_home + f'seasons/{season}/{page}/'
 
 	live_path = remote_path + "index.html"
 
