@@ -130,7 +130,6 @@ def update_owner_stats(owner_id, page):
 
 	return page
 
-
 ###################################################
 
 push_to_s3 = env["push_to_s3"]
