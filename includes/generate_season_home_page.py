@@ -412,16 +412,6 @@ def get_owner_rows_summary(connection, season):
 
 	return owner_rows_summary
 
-# def generate_home_page(connection, season, s3, env):
-
-# 	content = get_home_page_content(connection, season, env["archive_home_page"])
-
-# 	if env["create_local_files"]:
-# 		write_to_local_disk(content, "home", season)
-
-# 	if env["push_to_s3"]:
-# 		write_to_s3(content, "home", season, s3)
-
 def generate_season_home_page(connection, season, season_is_current, s3, env):
 
 	content = get_season_home_page_content(connection, season, season_is_current)
