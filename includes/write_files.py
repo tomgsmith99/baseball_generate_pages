@@ -5,7 +5,7 @@ import os.path
 
 #######################################
 
-local_home = "/Users/tomsmith/projects/baseball_local_static/public/"
+# local_home = "/Users/tomsmith/projects/baseball_local_static/public/"
 
 remote_home = ""
 
@@ -13,6 +13,8 @@ remote_home = ""
 
 with open('.env.json') as json_file:
 	env = json.load(json_file)
+
+local_home = env["local_home"]
 
 def write_to_local_disk(content, page, season, obj_id=0):
 
@@ -25,6 +27,16 @@ def write_to_local_disk(content, page, season, obj_id=0):
 			os.mkdir(local_home + "seasons")
 
 		local_path = local_home + f'players/{obj_id}/'
+
+	elif page == "players":
+
+		if not os.path.isdir(local_home + "seasons"):
+			os.mkdir(local_home + "seasons")
+
+		if not os.path.isdir(local_home + "seasons" + str(season)):
+			os.mkdir(local_home + "seasons" + str(season))
+
+		local_path = local_home + f'seasons/{str(season)}/players/'
 
 	elif page == "season":
 

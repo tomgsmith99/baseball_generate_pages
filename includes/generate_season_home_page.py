@@ -106,58 +106,58 @@ def make_ordinal(n):
 
 # def get_home_page_content(connection, season, archive_home_page):
 
-	content = {
-		"season": season,
-		"page_generated": datetime.datetime.now()
-	}
+	# content = {
+	# 	"season": season,
+	# 	"page_generated": datetime.datetime.now()
+	# }
 
-	###################################################
-	# Get main list of owners
-	content["owner_rows_summary"] = get_owner_rows_summary(connection, season)
+	# ###################################################
+	# # Get main list of owners
+	# content["owner_rows_summary"] = get_owner_rows_summary(connection, season)
 
-	###################################################
-	# owner drop-down
-	content["owner_dropdown"] = get_owner_dropdown(connection, season)
+	# ###################################################
+	# # owner drop-down
+	# content["owner_dropdown"] = get_owner_dropdown(connection, season)
 
-	###################################################
-	# owner detailed teams
-	content["teams"] = get_owner_detailed_teams(connection, season)
+	# ###################################################
+	# # owner detailed teams
+	# content["teams"] = get_owner_detailed_teams(connection, season)
 
-	###################################################
-	content["most_productive_players-picked"] = get_small_stats_table("points", "player", True, season)
-	content["most_valuable_players-picked"] = get_small_stats_table("value", "player", True, season)
-	content["most_popular_players"] = get_small_stats_table("picked", "player", True, season)
-	content["most_productive_players-all"] = get_small_stats_table("points", "player", False, season)
-	content["most_valuable_players-all"] = get_small_stats_table("value", "player", False, season)
+	# ###################################################
+	# content["most_productive_players-picked"] = get_small_stats_table("points", "player", True, season)
+	# content["most_valuable_players-picked"] = get_small_stats_table("value", "player", True, season)
+	# content["most_popular_players"] = get_small_stats_table("picked", "player", True, season)
+	# content["most_productive_players-all"] = get_small_stats_table("points", "player", False, season)
+	# content["most_valuable_players-all"] = get_small_stats_table("value", "player", False, season)
 
-	if not archive_home_page:
-		content["yesterday_top_owners"] = get_small_stats_table("yesterday", "owner", True, season)
-		content["hot_owners"] = get_small_stats_table("recent", "owner", True, season)
-		content["yesterday_top_players-picked"] = get_small_stats_table("yesterday", "player", True, season)
-		content["hot_players-picked"] = get_small_stats_table("recent", "player", True, season)
-		content["last_updated"] = get_last_updated(connection, season)
+	# if not archive_home_page:
+	# 	content["yesterday_top_owners"] = get_small_stats_table("yesterday", "owner", True, season)
+	# 	content["hot_owners"] = get_small_stats_table("recent", "owner", True, season)
+	# 	content["yesterday_top_players-picked"] = get_small_stats_table("yesterday", "player", True, season)
+	# 	content["hot_players-picked"] = get_small_stats_table("recent", "player", True, season)
+	# 	content["last_updated"] = get_last_updated(connection, season)
 
-	###################################################
+	# ###################################################
 
-	content["title"] = f'Baseball {season}: Standings'
+	# content["title"] = f'Baseball {season}: Standings'
 
-	with open("html/templates/base.html") as file:
-		base = file.read()
+	# with open("html/templates/base.html") as file:
+	# 	base = file.read()
 
-	if archive_home_page:
-		home_template = "html/templates/home_archive.html"
-	else:
-		home_template = "html/templates/home.html"
+	# if archive_home_page:
+	# 	home_template = "html/templates/home_archive.html"
+	# else:
+	# 	home_template = "html/templates/home.html"
 
-	with open(home_template) as file:
-		home = file.read()
+	# with open(home_template) as file:
+	# 	home = file.read()
 
-	home = base.replace("{main}", home)
+	# home = base.replace("{main}", home)
 
-	for chunk in content:
-		home = home.replace("{" + chunk + "}", str(content[chunk]))
+	# for chunk in content:
+	# 	home = home.replace("{" + chunk + "}", str(content[chunk]))
 
-	return home
+	# return home
 
 def get_season_home_page_content(connection, season, season_is_current):
 

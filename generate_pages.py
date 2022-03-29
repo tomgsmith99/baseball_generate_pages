@@ -153,23 +153,9 @@ for x in range(0, len(sys.argv)):
 
 		create_owner_page(owner_id)
 
-		# query = "SELECT * FROM seasons"
+	if arg == "--players":
 
-		# rows = get_rows(query)
-
-		# for row in rows:
-		# 	season = row['season']
-
-		# 	if season == env["current_season"]:
-		# 		season_is_current = True
-		# 	else:
-		# 		season_is_current = False
-
-		# 	print("generating home page for season " + str(season))
-
-		# 	generate_season_home_page(connection, season, season_is_current, s3, env)
-
-		# generate_season_nav_page(connection, s3, env)
+		print("generate all player pages.")
 
 	if arg == "--seasons":
 
@@ -191,10 +177,9 @@ for x in range(0, len(sys.argv)):
 
 		generate_season_nav_page(connection, s3, env)
 
-
 	if arg == "--season":
 
-		season = sys.argv[x + 1]
+		season = int(sys.argv[x + 1])
 
 		print("the season is: " + str(season))
 
@@ -207,10 +192,7 @@ for x in range(0, len(sys.argv)):
 
 		generate_season_home_page(connection, season, season_is_current, s3, env)
 
-# generate_players_page(connection, season, s3, push_to_s3, create_local_files)
+		generate_players_page(connection, season, s3, push_to_s3, create_local_files)
 
-# generate_trades_page(connection, season, s3, push_to_s3, create_local_files)
-
-# generate_player_pages(connection, season, s3, push_to_s3, create_local_files)
 
 exit()

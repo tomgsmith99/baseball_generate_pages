@@ -20,7 +20,7 @@ def get_players_page_content(connection, season):
 
 	content["title"] = f'Baseball {season}: Players'
 
-	query = f'SELECT * FROM players_current_view WHERE season={season} ORDER BY points DESC, lnf ASC'
+	query = f'SELECT * FROM player_x_season_detail WHERE season={season} ORDER BY points DESC, lnf ASC'
 
 	html = ""
 
@@ -31,14 +31,8 @@ def get_players_page_content(connection, season):
 
 	for row in rows:
 
-		if row["recent"] == -1:
-			row["recent"] = "N/A"
-
-		if row["yesterday"] == -1:
-			row["yesterday"] = "N/A"
-
 		if row["value"] == -1:
-			row["value"] = "N/A"
+			row["value"] = "0"
 
 		if row["pos"] == "C":
 			row["pos"] = "C2"
@@ -53,7 +47,7 @@ def get_players_page_content(connection, season):
 
 		this_player = template
 
-		vals = ["points", "name_with_link", "pos", "yesterday", "recent", "salary", "team", "value", "drafted", "picked"]
+		vals = ["points", "name_with_link", "pos", "salary", "team", "value", "drafted", "picked"]
 
 		for val in vals:
 
@@ -78,7 +72,7 @@ def get_players_page_content(connection, season):
 
 def generate_players_page(connection, season, s3, push_to_s3, create_local_files):
 
-	query = f'SELECT * FROM players_current_view WHERE season={season} ORDER BY lnf'
+	query = f'SELECT * FROM player_x_season_detail WHERE season={season} ORDER BY lnf'
 
 	print(query)
 
