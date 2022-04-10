@@ -6,7 +6,7 @@
 
 <head>
 
-	<title>{title}</title>
+	<title>{{title}}</title>
 
 	<meta http-equiv="content-type" content="text/html;charset=utf-8">
 
@@ -43,7 +43,7 @@
 		}
 
 		#make_a_trade {
-			display: {make_a_trade};
+			display: '{{make_a_trade}}';
 		}
 	</style>
 
@@ -115,10 +115,15 @@
 	<main role="main" class="container">
 
 		<div class="starter-template" style="margin-top:10px">
-			{main}
+
+			{{#home_current}}
+
+			{{> home_current}}
+
+			{{/home_current}}
 		</div>
 
-		<p>page generated: {page_generated}</p>
+		<p>page generated: {{page_generated}}</p>
 	</main>
 
 	<!-- SCRIPTS -->

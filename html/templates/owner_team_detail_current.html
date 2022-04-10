@@ -1,13 +1,13 @@
 
-<a id="{link}"></a>
+<a id="#{{season}}_{{owner_id}}"></a>
 
 <table class="table table-striped table-bordered table-sm">
 	<thead>
 		<tr>
-			<th colspan="10">{nickname} - {team_name}</th>
+			<th colspan="10">{{nickname}} - {{team_name}}</th>
 		</tr>
 
-		<tr><th colspan="10">{season}: {place} place</th></tr>
+		<tr><th colspan="10">{{season}}: {{place}} place</th></tr>
 
 		<tr>
 			<th>POS</th>
@@ -22,15 +22,49 @@
 	</thead>
 
 	<tbody>
-		{players}
-		{active_html}
-		{bench_html}
+
+		{{#active_players}}
+
+		{{^acquired}}<tr>{{/acquired}}
+
+		{{#acquired}}<tr style="font-style: italic">{{/acquired}}
+
+			<td>{{pos}}</td>
+			<td><a href='/players/{{player_id}}'>{{fnf}}</a></td>
+			<td>{{team}}</td>
+			<td class="player_row_cell_rt">${{salary}}</td>
+			<td class="player_row_cell_rt">{{points}}</td>
+			<td class="player_row_cell_rt">{{yesterday}}</td>
+			<td class="player_row_cell_rt">{{recent}}</td>
+			<td class="player_row_cell_rt">{{value}}</td>
+		</tr>
+		{{/active_players}}
+
+		{{#has_benched_players}}
+		<tr><td colspan="10" style="text-align: center;">Benched players</td></tr>
+		{{/has_benched_players}}
+
+		{{#benched_players}}
 		<tr>
-			<td colspan="3" align="right">bank: ${bank}</td>
-			<td align="right"><b>${salary}</b></td>
-			<td align="right"><b>{points}</b></td>
-			<td align="right"><b>{yesterday}</b></td>
-			<td align="right"><b>{recent}</b></td>
+			<td>{{pos}}</td>
+			<td><a href='/players/{{player_id}}'>{{fnf}}</a></td>
+			<td>{{team}}</td>
+			<td class="player_row_cell_rt">${{salary}}</td>
+			<td class="player_row_cell_rt">{{points}}</td>
+			<td class="player_row_cell_rt">{{yesterday}}</td>
+			<td class="player_row_cell_rt">{{recent}}</td>
+			<td class="player_row_cell_rt">{{value}}</td>
+		</tr>
+
+		{{/benched_players}}
+
+
+		<tr>
+			<td colspan="3" align="right">bank: ${{bank}}</td>
+			<td align="right"><b>${{salary}}</b></td>
+			<td align="right"><b>{{points}}</b></td>
+			<td align="right"><b>{{yesterday}}</b></td>
+			<td align="right"><b>{{recent}}</b></td>
 			<td align="right"><a href = "#top">top</a></td>
 		</tr>
 	</tbody>
