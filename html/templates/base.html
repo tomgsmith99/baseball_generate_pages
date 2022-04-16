@@ -60,10 +60,6 @@
 		<div class="collapse navbar-collapse" id="navbarsExampleDefault">
 			<ul class="navbar-nav mr-auto">
 
-				<li class="nav-item">
-					<a class="nav-link" href="/about">About</a>
-				</li>
-
 				<li class="nav-item dropdown">
 					<a class="nav-link dropdown-toggle" href="#" id="dropdown_history" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">History</a>
 
@@ -115,6 +111,13 @@
 	<main role="main" class="container">
 
 		<div class="starter-template" style="margin-top:10px">
+
+			{{#history}}
+
+			{{>history}}
+
+			{{/history}}
+
 
 			{{#home_current}}
 

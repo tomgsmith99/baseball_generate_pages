@@ -56,152 +56,33 @@
 
 					<!-- leaderboard -->
 
-					<div id="yesterday_owners">
+					<div>
 						<table class="table table-sm table-striped">
+
+							{{#leaderboards}}
+
 							<thead>
 								<tr>
 									<th colspan="6">
-										<a target = "_blank" href = "">Yesterday's top owners</a>
+										<a target = "_blank" href = "{{href}}">{{title}}</a>
 									</th>
 								</tr>
 							</thead>
 
-							<tbody>
-								{{yesterday_top_owners}}
-							</tbody>
+							{{#leaders}}
+							<tr>
+								<td>{{rank}}</td>
+								<td><a href = "{{href}}">{{name}}</a></td>
+								<td class="owner_row_cell_rt">{{val}}</td>
+							</tr>
+							{{/leaders}}
+
+							{{/leaderboards}}
+
 						</table>
 					</div>
 
-					<div id="hot_owners">
-						<table class="table table-sm table-striped">
-							<thead>
-								<tr>
-									<th colspan="6">
-										<a target = "_blank" href = "">Hot owners</a>
-									</th>
-								</tr>
-							</thead>
-
-							<tbody>
-								{{hot_owners}}
-							</tbody>
-						</table>
-					</div>
-
-					<div id="yesterday_players">
-						<table class="table table-sm table-striped">
-							<thead>
-								<tr>
-									<th colspan="6">
-										<a target = "_blank" href = "">Yesterday's top players (picked)</a>
-									</th>
-								</tr>
-							</thead>
-
-							<tbody>
-								{{yesterday_top_players-picked}}
-							</tbody>
-						</table>
-					</div>
-
-					<div id="hot_players">
-						<table class="table table-sm table-striped">
-							<thead>
-								<tr>
-									<th colspan="6">
-										<a target = "_blank" href = "">Hot players (picked)</a>
-									</th>
-								</tr>
-							</thead>
-
-							<tbody>
-								{{hot_players-picked}}
-							</tbody>
-						</table>
-					</div>
-
-					<div id="players_prod_picked">
-						<table class="table table-sm table-striped">
-							<thead>
-								<tr>
-									<th colspan="6">
-										<a target = "_blank" href = "/players/{{season}}">Most Productive Players (picked)</a>
-									</th>
-								</tr>
-							</thead>
-
-							<tbody>
-								{{most_productive_players-picked}}
-							</tbody>
-						</table>
-					</div>
-
-					<div id="players_val">
-						<table class="table table-sm table-striped">
-							<thead>
-								<tr>
-									<th colspan="6">
-										<a target = "_blank" href = "/players/{{season}}">Most Valuable Players (picked)</a>
-									</th>
-								</tr>
-							</thead>
-
-							<tbody>
-								{{most_valuable_players-picked}}
-							</tbody>
-						</table>
-					</div>
-
-					<div id="players_picked">
-						<table class="table table-sm table-striped">
-							<thead>
-								<tr>
-									<th colspan="6">
-										<a target = '_blank' href = "/players/{{season}}">Most Popular Players</a>
-									</th>
-								</tr>
-							</thead>
-
-							<tbody>
-								{{most_popular_players}}
-							</tbody>
-						</table>
-					</div>
-
-					<div id="players_prod_all">
-						<table class="table table-sm table-striped">
-							<thead>
-								<tr>
-									<th colspan="6">
-										<a target = "_blank" href = "/players/{{season}}">Most Productive Players (all)</a>
-									</th>
-								</tr>
-							</thead>
-
-							<tbody>
-								{{most_productive_players-all}}
-							</tbody>
-						</table>
-					</div>
-
-					<div id="players_val_all">
-
-						<table class="table table-sm table-striped">
-							<thead>
-								<tr>
-									<th colspan="6">
-										<a target = "_blank" href = "/players/{{season}}">Most Valuable Players (all)</a>
-									</th>
-								</tr>
-							</thead>
-
-							<tbody>
-								{{most_valuable_players-all}}
-							</tbody>
-						</table>
-					</div>
 				</div>
-			</div>
 
 			<div class="row">
 
@@ -209,75 +90,75 @@
 
 					{{#teams}}
 
-<a id="{{season}}_{{owner_id}}"></a>
+					<a id="{{season}}_{{owner_id}}"></a>
 
-<table class="table table-striped table-bordered table-sm">
-	<thead>
-		<tr>
-			<th colspan="10">{{nickname}} - {{team_name}}</th>
-		</tr>
+					<table class="table table-striped table-bordered table-sm">
+						<thead>
+							<tr>
+								<th colspan="10">{{nickname}} - {{team_name}}</th>
+							</tr>
 
-		<tr><th colspan="10">{{season}}: {{place}} place</th></tr>
+							<tr><th colspan="10">{{season}}: {{place}} place</th></tr>
 
-		<tr>
-			<th>POS</th>
-			<th>Name</th>
-			<th class="text-center">Team</th>
-			<th class="text-center">Salary</th>
-			<th class="text-center">Pts</th>
-			<th class="text-center">Yday</th>
-			<th class="text-center">Rec</th>
-			<th class="text-center">Val</th>
-		</tr>
-	</thead>
+							<tr>
+								<th>POS</th>
+								<th>Name</th>
+								<th class="text-center">Team</th>
+								<th class="text-center">Salary</th>
+								<th class="text-center">Pts</th>
+								<th class="text-center">Yday</th>
+								<th class="text-center">Rec</th>
+								<th class="text-center">Val</th>
+							</tr>
+						</thead>
 
-	<tbody>
+						<tbody>
 
-		{{#active_players}}
+							{{#active_players}}
 
-		{{^acquired}}<tr>{{/acquired}}
+							{{^acquired}}<tr>{{/acquired}}
 
-		{{#acquired}}<tr style="font-style: italic">{{/acquired}}
+							{{#acquired}}<tr style="font-style: italic">{{/acquired}}
 
-			<td>{{pos}}</td>
-			<td><a href='/players/{{player_id}}'>{{fnf}}</a></td>
-			<td>{{team}}</td>
-			<td class="player_row_cell_rt">${{salary}}</td>
-			<td class="player_row_cell_rt">{{points}}</td>
-			<td class="player_row_cell_rt">{{yesterday}}</td>
-			<td class="player_row_cell_rt">{{recent}}</td>
-			<td class="player_row_cell_rt">{{value}}</td>
-		</tr>
-		{{/active_players}}
+								<td>{{pos}}</td>
+								<td><a href='/players/{{player_id}}'>{{fnf}}</a></td>
+								<td>{{team}}</td>
+								<td class="player_row_cell_rt">${{salary}}</td>
+								<td class="player_row_cell_rt">{{points}}</td>
+								<td class="player_row_cell_rt">{{yesterday}}</td>
+								<td class="player_row_cell_rt">{{recent}}</td>
+								<td class="player_row_cell_rt">{{value}}</td>
+							</tr>
+							{{/active_players}}
 
-		{{#has_benched_players}}
-		<tr><td colspan="10" style="text-align: center;">Benched players</td></tr>
-		{{/has_benched_players}}
+							{{#has_benched_players}}
+							<tr><td colspan="10" style="text-align: center;">Benched players</td></tr>
+							{{/has_benched_players}}
 
-		{{#benched_players}}
-		<tr>
-			<td>{{pos}}</td>
-			<td><a href='/players/{{player_id}}'>{{fnf}}</a></td>
-			<td>{{team}}</td>
-			<td class="player_row_cell_rt">${{salary}}</td>
-			<td class="player_row_cell_rt">{{points}}</td>
-			<td class="player_row_cell_rt">{{yesterday}}</td>
-			<td class="player_row_cell_rt">{{recent}}</td>
-			<td class="player_row_cell_rt">{{value}}</td>
-		</tr>
+							{{#benched_players}}
+							<tr>
+								<td>{{pos}}</td>
+								<td><a href='/players/{{player_id}}'>{{fnf}}</a></td>
+								<td>{{team}}</td>
+								<td class="player_row_cell_rt">${{salary}}</td>
+								<td class="player_row_cell_rt">{{points}}</td>
+								<td class="player_row_cell_rt">{{yesterday}}</td>
+								<td class="player_row_cell_rt">{{recent}}</td>
+								<td class="player_row_cell_rt">{{value}}</td>
+							</tr>
 
-		{{/benched_players}}
+							{{/benched_players}}
 
-		<tr>
-			<td colspan="3" align="right">bank: ${{bank}}</td>
-			<td align="right"><b>${{salary}}</b></td>
-			<td align="right"><b>{{points}}</b></td>
-			<td align="right"><b>{{yesterday}}</b></td>
-			<td align="right"><b>{{recent}}</b></td>
-			<td align="right"><a href = "#top">top</a></td>
-		</tr>
-	</tbody>
-</table>
+							<tr>
+								<td colspan="3" align="right">bank: ${{bank}}</td>
+								<td align="right"><b>${{salary}}</b></td>
+								<td align="right"><b>{{points}}</b></td>
+								<td align="right"><b>{{yesterday}}</b></td>
+								<td align="right"><b>{{recent}}</b></td>
+								<td align="right"><a href = "#top">top</a></td>
+							</tr>
+						</tbody>
+					</table>
 
 					{{/teams}}
 
