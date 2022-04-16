@@ -23,7 +23,6 @@ from includes.generate_trades_page import generate_trades_page
 with open('.env.json') as json_file:
 	env = json.load(json_file)
 
-local_home = env['local_home']
 season = env['season']
 
 ###################################################
@@ -83,11 +82,15 @@ def generate_page(subject, push_to_s3):
 
 	path = path + "index.html"
 
-	f = open(f'{local_home}{path}', "w")
+	if env['create_local_files']:
 
-	f.write(page)
+		local_home = env['local_home']
 
-	f.close()
+		f = open(f'{local_home}{path}', "w")
+
+		f.write(page)
+
+		f.close()
 
 	if push_to_s3:
 
