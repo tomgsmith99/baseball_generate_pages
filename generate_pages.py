@@ -14,7 +14,7 @@ from includes.dbconn import connection, cursor, get_row, get_rows, pcursor
 
 from includes.generate_players_page import generate_players_page
 from includes.generate_player_pages import generate_player_pages
-from includes.generate_season_home_page import generate_season_home_page
+# from includes.generate_season_home_page import generate_season_home_page
 from includes.generate_season_home_page import generate_season_nav_page
 from includes.generate_trades_page import generate_trades_page
 
