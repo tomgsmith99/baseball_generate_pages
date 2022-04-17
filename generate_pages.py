@@ -12,12 +12,6 @@ import sys
 import includes.dbconn
 from includes.dbconn import connection, cursor, get_row, get_rows, pcursor
 
-# from includes.generate_players_page import generate_players_page
-# from includes.generate_player_pages import generate_player_pages
-# from includes.generate_season_home_page import generate_season_home_page
-# from includes.generate_season_home_page import generate_season_nav_page
-# from includes.generate_trades_page import generate_trades_page
-
 ###################################################
 
 with open('.env.json') as json_file:
@@ -27,11 +21,11 @@ season = env['season']
 
 ###################################################
 
-push_to_s3 = False
+globals()['push_to_s3'] = False
 
 ###################################################
 
-def generate_page(subject, push_to_s3):
+def generate_page(subject, item_id=0):
 
 	obj = {
 		'page_generated': datetime.datetime.now()
@@ -62,6 +56,18 @@ def generate_page(subject, push_to_s3):
 
 		path = 'history/'
 
+	if subject == 'players':
+
+		season = item_id
+
+		obj['title'] = 'Baseball: ' + str(season) + ' Players'
+		obj['players_page'] = True
+		obj['make_a_trade'] = 'none'
+		obj['season'] = season
+		obj['players'] = get_players(season)
+
+		path = f'seasons/{season}/players/'
+
 	with open('html/templates/base.html', 'r') as f:
 
 		args = {
@@ -73,26 +79,13 @@ def generate_page(subject, push_to_s3):
 
 		page = chevron.render(**args)
 
-	# print(page)
-
-	# if not os.path.isdir(local_home + 'history'):
-	# 	os.mkdir(f'{local_home}history')
-
-	# f = open(f'{local_home}history/index.html', "w")
-
 	path = path + 'index.html'
 
 	if env['create_local_files']:
 
-		local_home = env['local_home']
+		write_local_file(f'{env["local_home"]}{path}', page)
 
-		f = open(f'{local_home}{path}', "w")
-
-		f.write(page)
-
-		f.close()
-
-	if push_to_s3:
+	if globals()['push_to_s3']:
 
 		print('pushing page to s3...')
 
@@ -125,45 +118,6 @@ def generate_page(subject, push_to_s3):
 	else:
 		print('push_to_s3 is false.')
 
-def generate_players_page(season):
-
-	local_home = env['local_home']
-
-	obj = {}
-
-	obj['title'] = 'Baseball: ' + str(season) + ' Players'
-	obj['players_page'] = True
-	obj['make_a_trade'] = 'none'
-	obj['season'] = season
-	obj['players'] = get_players(season)
-	obj['page_generated'] = datetime.datetime.now()
-
-	with open('html/templates/base.html', 'r') as f:
-
-		args = {
-			'template': f,
-			'data': obj,
-			'partials_path': 'partials/',
-			'partials_ext': 'ms'
-		}
-
-		page = chevron.render(**args)
-
-		print(page)
-
-		if not os.path.isdir(local_home + "seasons"):
-			os.mkdir(f'{local_home}seasons')
-
-		if not os.path.isdir(f'{local_home}seasons/{season}'):
-			os.mkdir(f'{local_home}seasons/{season}')
-
-		if not os.path.isdir(f'{local_home}seasons/{season}/players'):
-			os.mkdir(f'{local_home}seasons/{season}/players')
-
-		f = open(f'{local_home}seasons/{season}/players/index.html', "w")
-		f.write(page)
-		f.close()
-
 def get_command_line_args():
 
 	print ('Number of arguments:' + str(len(sys.argv)))
@@ -174,13 +128,17 @@ def get_command_line_args():
 
 	if '--push_to_s3' in sys.argv:
 
-		push_to_s3 = True
+		globals()['push_to_s3'] = True
 
-	if '--season' in sys.argv:
+	########################################
 
-		index = sys.argv.index('--season')
+	if '--current' in sys.argv:
 
-		season = sys.argv[index + 1]
+		generate_page('current')
+
+	if '--history' in sys.argv:
+
+		generate_page('history')
 
 	if '--players' in sys.argv:
 
@@ -188,26 +146,11 @@ def get_command_line_args():
 
 		season = sys.argv[index + 1]
 
-		print('the season is: ' + season)
-
-		exit()
-
-
-
+		generate_page('players', season)
 
 	for x in range(0, len(sys.argv)):
 
 		arg = sys.argv[x]
-
-		# print(sys.argv[x])
-
-		if arg == "--current":
-
-			generate_page('current', push_to_s3)
-
-		if arg == "--history":
-
-			generate_page('history')
 
 		if arg == "--owner":
 
@@ -216,10 +159,6 @@ def get_command_line_args():
 			print("the owner id is: " + str(owner_id))
 
 			create_owner_page(owner_id)
-
-		if arg == "--players":
-
-			print("generate all player pages.")
 
 		if arg == "--seasons":
 
@@ -240,24 +179,6 @@ def get_command_line_args():
 				generate_season_home_page(connection, season, season_is_current, s3, env)
 
 			generate_season_nav_page(connection, s3, env)
-
-		# if arg == "--season":
-
-		# 	season = int(sys.argv[x + 1])
-
-		# 	print("the season is: " + str(season))
-
-		# 	print("generating home page for season " + str(season))
-
-		# 	if season == env["current_season"]:
-		# 		season_is_current = True
-		# 	else:
-		# 		season_is_current = False
-
-		# 	generate_season_home_page(connection, season, season_is_current, s3, env)
-
-		# 	generate_players_page(connection, season, s3, push_to_s3, create_local_files)
-
 
 	exit()
 
@@ -439,6 +360,68 @@ def make_ordinal(n):
 		suffix = 'th'
 	return str(n) + suffix
 
+def push_to_s3(path, page):
+
+	print('pushing page to s3...')
+
+	session = boto3.Session(
+		aws_access_key_id=env['accessKeyId'],
+		aws_secret_access_key=env['secretAccessKey']
+	)
+
+	s3 = session.resource('s3')
+
+	s3_bucket = env["s3_bucket"]
+
+	my_bucket = s3.Bucket(s3_bucket)
+
+	my_bucket.put_object(Key=path, Body=page, ContentType='text/html', ACL='public-read')
+
+	# s3.Bucket(s3_bucket).put_object(Key=path, Body=page, ContentType='text/html', ACL='public-read')
+
+	# if page == "home" or page == "players":
+	# 	x = datetime.datetime.now()
+
+	# 	filename_base = x.strftime("%Y_%m_%d_%H_%M_%S")
+
+	# 	filename = filename_base + ".html"
+
+	# 	backup_path = "backup/" + remote_path + filename
+
+	# 	s3.Bucket(s3_bucket).put_object(Key=backup_path, Body=content, ContentType='text/html', ACL='public-read')
+
+def show_options():
+
+	print('1) current home page')
+	print('2) players page')
+	print('3) generate history page')
+
+	val = int(input("Which do you want to do? "))
+
+	print(val)
+
+	if val == 1:
+
+		generate_page('current')
+
+	if val == 2:
+
+		val = int(input("Which season? "))
+
+		generate_page('players', val)
+
+	if val == 3:
+
+		generate_page('history')
+
+def write_local_file(path, page):
+
+	f = open(path, "w")
+
+	f.write(page)
+
+	f.close()
+
 ##############################################################
 
 if not get_command_line_args():
@@ -449,30 +432,4 @@ else:
 
 	print("some command line args were supplied.")
 
-	exit()
-
-print('1) current home page')
-print('2) players page')
-print('3) generate history page')
-
-val = int(input("Which do you want to do? "))
-
-print(val)
-
-if val == 1:
-	generate_home_page_current()
-
-if val == 2:
-
-	val = int(input("Which season? "))
-
-	generate_players_page(season)
-
-else:
-	get_leaderboards(season)
-
-
 exit()
-
-##############################################################
-
