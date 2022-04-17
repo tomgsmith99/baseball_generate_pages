@@ -80,7 +80,7 @@ def generate_page(subject, push_to_s3):
 
 	# f = open(f'{local_home}history/index.html', "w")
 
-	path = path + "index.html"
+	path = path + 'index.html'
 
 	if env['create_local_files']:
 
@@ -126,6 +126,8 @@ def generate_page(subject, push_to_s3):
 		print('push_to_s3 is false.')
 
 def generate_players_page(season):
+
+	local_home = env['local_home']
 
 	obj = {}
 
@@ -174,6 +176,25 @@ def get_command_line_args():
 
 		push_to_s3 = True
 
+	if '--season' in sys.argv:
+
+		index = sys.argv.index('--season')
+
+		season = sys.argv[index + 1]
+
+	if '--players' in sys.argv:
+
+		index = sys.argv.index('--players')
+
+		season = sys.argv[index + 1]
+
+		print('the season is: ' + season)
+
+		exit()
+
+
+
+
 	for x in range(0, len(sys.argv)):
 
 		arg = sys.argv[x]
@@ -220,22 +241,22 @@ def get_command_line_args():
 
 			generate_season_nav_page(connection, s3, env)
 
-		if arg == "--season":
+		# if arg == "--season":
 
-			season = int(sys.argv[x + 1])
+		# 	season = int(sys.argv[x + 1])
 
-			print("the season is: " + str(season))
+		# 	print("the season is: " + str(season))
 
-			print("generating home page for season " + str(season))
+		# 	print("generating home page for season " + str(season))
 
-			if season == env["current_season"]:
-				season_is_current = True
-			else:
-				season_is_current = False
+		# 	if season == env["current_season"]:
+		# 		season_is_current = True
+		# 	else:
+		# 		season_is_current = False
 
-			generate_season_home_page(connection, season, season_is_current, s3, env)
+		# 	generate_season_home_page(connection, season, season_is_current, s3, env)
 
-			generate_players_page(connection, season, s3, push_to_s3, create_local_files)
+		# 	generate_players_page(connection, season, s3, push_to_s3, create_local_files)
 
 
 	exit()
