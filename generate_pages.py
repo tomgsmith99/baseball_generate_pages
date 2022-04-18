@@ -17,11 +17,10 @@ from includes.dbconn import connection, cursor, get_row, get_rows, pcursor
 with open('.env.json') as json_file:
 	env = json.load(json_file)
 
-season = env['season']
-
 ###################################################
 
 globals()['push_to_s3'] = False
+globals()['season'] = env['season']
 
 ###################################################
 
@@ -32,6 +31,8 @@ def generate_page(subject, item_id=0):
 	}
 
 	if subject == 'current':
+
+		season = globals()['season']
 
 		obj['title'] = 'Baseball ' + str(season)
 		obj['make_a_trade'] = 'none'
