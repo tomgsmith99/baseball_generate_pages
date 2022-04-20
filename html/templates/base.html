@@ -90,9 +90,12 @@
 					</div>
 				</li>
 
+				{{#home_current}}
 				<li class="nav-item" id = "make_a_trade">
 					<a class="nav-link" href="https://tomgsmith99-baseball-trade.herokuapp.com">Make a trade</a>
 				</li>
+				{{/home_current}}
+
 			</ul>
 		</div>
 	</nav>
@@ -108,18 +111,18 @@
 			{{/history}}
 
 
-			{{#home_current}}
-
-			{{> home_current}}
-
-			{{/home_current}}
-
-
 			{{#players_page}}
 
 			{{> players_page}}
 
 			{{/players_page}}
+
+
+			{{#season_page}}
+
+			{{> season}}
+
+			{{/season_page}}
 
 		</div>
 

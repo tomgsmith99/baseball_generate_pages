@@ -36,14 +36,14 @@ def generate_page(subject, item_id=0):
 
 		obj['title'] = 'Baseball ' + str(season)
 		obj['make_a_trade'] = 'none'
-		obj['home_current'] = True
+		obj['season_page'] = True
+		obj['season_is_current'] = True
 		obj['season'] = season
 		obj['owner_rows'] = get_owner_rows(season)
 		obj['owners'] = get_owners(season)
 		obj['teams'] = get_teams(season)
 		obj['last_updated'] = get_last_updated()
-		obj['page_generated'] = datetime.datetime.now()
-		obj['leaderboards'] = get_leaderboards(season)
+		obj['leaderboards'] = get_leaderboards(season, True)
 
 		path = ''
 
@@ -63,11 +63,29 @@ def generate_page(subject, item_id=0):
 
 		obj['title'] = 'Baseball: ' + str(season) + ' Players'
 		obj['players_page'] = True
-		obj['make_a_trade'] = 'none'
 		obj['season'] = season
 		obj['players'] = get_players(season)
 
 		path = f'seasons/{season}/players/'
+
+	if subject == 'season':
+
+		season = item_id
+
+		obj['title'] = 'Baseball: Final Standings ' + str(season)
+		obj['season_page'] = True
+		obj['season'] = season
+		obj['season_is_current'] = False
+		obj['owner_rows'] = get_owner_rows(season)
+		obj['owners'] = get_owners(season)
+		obj['teams'] = get_teams(season)
+		obj['leaderboards'] = get_leaderboards(season, False)
+
+		path = f'seasons/{season}/'
+
+	###############################################
+	# generate files
+	###############################################
 
 	with open('html/templates/base.html', 'r') as f:
 
@@ -75,7 +93,7 @@ def generate_page(subject, item_id=0):
 			'template': f,
 			'data': obj,
 			'partials_path': 'partials/',
-			'partials_ext': 'ms'
+			'partials_ext': 'html'
 		}
 
 		page = chevron.render(**args)
@@ -149,6 +167,16 @@ def get_command_line_args():
 
 		generate_page('players', season)
 
+	if '--season' in sys.argv:
+
+		index = sys.argv.index('--season')
+
+		season = sys.argv[index + 1]
+
+		print('the season is: ' + season)
+
+		generate_page('season', season)
+
 	for x in range(0, len(sys.argv)):
 
 		arg = sys.argv[x]
@@ -191,9 +219,9 @@ def get_last_updated():
 
 	return row['update_desc']
 
-def get_leaderboards(season):
+def get_leaderboards(season, is_current):
 
-	leaderboards = [
+	current_leaderboards = [
 		{
 			'title': "Yesterday's top owners",
 			'href': "#",
@@ -213,7 +241,10 @@ def get_leaderboards(season):
 			'title': "Hot players (picked)",
 			'href': f'/seasons/{season}/players',
 			'leaders': get_leaders('recent', 'player', season)
-		},
+		}
+	]
+
+	leaderboards = [
 		{
 			'title': "Most Productive Players (picked)",
 			'href': f'/seasons/{season}/players',
@@ -241,7 +272,10 @@ def get_leaderboards(season):
 		}
 	]
 
-	return leaderboards
+	if (is_current):
+		return current_leaderboards + leaderboards
+	else:
+		return leaderboards
 
 def get_leaders(col, person_type, season, picked_only=True):
 
