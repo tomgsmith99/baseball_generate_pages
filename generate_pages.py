@@ -155,6 +155,16 @@ def get_command_line_args():
 
 		generate_page('current')
 
+	if '--help' in sys.argv or '-h' in sys.argv:
+
+		print('available commands: ')
+		print('--current: generate current season home page')
+		print('--history: generate the narrative history page')
+		print('--players [season]: generate the players home page for a season')
+		print('--season [season]: generate the season home page for a season')
+
+		exit()
+
 	if '--history' in sys.argv:
 
 		generate_page('history')
@@ -279,20 +289,19 @@ def get_leaderboards(season, is_current):
 
 def get_leaders(col, person_type, season, picked_only=True):
 
-	picked_clause = ''
-
 	if person_type == 'owner':
 		name_col = 'nickname'
 		table = 'ownersXseasons_detail'
 
 	if person_type == 'player':
 		name_col = 'fnf'
-		table = 'player_x_season_detail'
 
 		if picked_only:
-			picked_clause = 'AND (drafted > 0 OR acquired > 0)'
+			table = 'player_x_season_leaderboard_rostered_only'
+		else:
+			table = 'player_x_season_leaderboard_all' 
 
-	query = f'SELECT {name_col} AS name, {col} AS val FROM {table} WHERE season={season} {picked_clause} ORDER BY {col} DESC, {name_col} ASC LIMIT 5'
+	query = f'SELECT {name_col} AS name, {col} AS val FROM {table} WHERE season={season} ORDER BY {col} DESC, {name_col} ASC LIMIT 5'
 
 	print(query)
 
