@@ -104,25 +104,13 @@
 
 		<div class="starter-template" style="margin-top:10px">
 
-			{{#history}}
+			{{#history}}{{>history}}{{/history}}
 
-			{{>history}}
+			{{#players_page}}{{> players_page}}{{/players_page}}
 
-			{{/history}}
+			{{#season_page}}{{> season}}{{/season_page}}
 
-
-			{{#players_page}}
-
-			{{> players_page}}
-
-			{{/players_page}}
-
-
-			{{#season_page}}
-
-			{{> season}}
-
-			{{/season_page}}
+			{{#trades_page}}{{> trades_page}}{{/trades_page}}
 
 		</div>
 

@@ -1,0 +1,31 @@
+
+<p><a href = '{{{make_a_trade_link}}}'><button>Make a trade</button></a></p>
+
+<h3 style="margin-top:10px">Trades {{season}}</h3>
+
+<table class="table table-striped table-bordered table-sm">
+	<thead>
+		<tr>
+			<th>Date</th>
+			<th>Owner</th>
+			<th>Dropped player</th>
+			<th>Added player</th>
+			<th>Pos</th>
+		</tr>
+	</thead>
+
+	<tbody>
+
+	{{#trades}}
+		<tr align="left">
+			<td align="left">{{date}}</td>
+			<td>{{nickname}}</td>
+			<td>{{dropped_fnf}}</td>
+			<td>{{added_fnf}}</td>
+			<td align="right">{{pos}}</td>
+		</tr>
+	{{/trades}}
+
+	</tbody>
+
+</table>

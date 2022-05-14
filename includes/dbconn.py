@@ -15,7 +15,7 @@ print("trying mysql connection...")
 try:
 	connection = mysql.connector.connect(host=env["host"], database=env["database"], user=env["user"], password=env["password"], port=env["port"])
 
-	cursor = connection.cursor(dictionary=True)
+	cursor = connection.cursor(dictionary=True, buffered=True)
 	pcursor = connection.cursor(prepared=True)
 
 	print("the mysql db connection worked.")

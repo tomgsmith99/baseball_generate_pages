@@ -22,6 +22,8 @@ with open('.env.json') as json_file:
 globals()['push_to_s3'] = False
 globals()['season'] = env['season']
 
+make_a_trade_link = 'https://tomgsmith99-baseball-trade.herokuapp.com/'
+
 ###################################################
 
 def generate_page(subject, item_id=0):
@@ -82,6 +84,18 @@ def generate_page(subject, item_id=0):
 		obj['leaderboards'] = get_leaderboards(season, False)
 
 		path = f'seasons/{season}/'
+
+	if subject == 'trades':
+
+		season = item_id
+
+		obj['title'] = 'Baseball: Trades ' + str(season)
+		obj['trades_page'] = True
+		obj['season'] = season
+		obj['trades'] = get_trades(season)
+		obj['make_a_trade_link'] = make_a_trade_link
+
+		path = f'seasons/{season}/trades/'
 
 	###############################################
 	# generate files
@@ -186,6 +200,16 @@ def get_command_line_args():
 		print('the season is: ' + season)
 
 		generate_page('season', season)
+
+	if '--trades' in sys.argv:
+
+		index = sys.argv.index('--trades')
+
+		season = sys.argv[index + 1]
+
+		print('the season is: ' + season)
+
+		generate_page('trades', season)
 
 	for x in range(0, len(sys.argv)):
 
@@ -396,6 +420,42 @@ def get_teams(season):
 		teams.append(team)
 
 	return teams
+
+def get_trades(season): 
+
+	query = f'SELECT * FROM trades_detail WHERE season = {season} AND owner_id != 63 ORDER BY stamp DESC'
+
+	trades = get_rows(query)
+
+	for x in range(0, len(trades)):
+
+		added_id = trades[x]['added_player_id']
+
+		dropped_id = trades[x]['dropped_player_id']
+
+		query = f'SELECT fnf FROM players WHERE player_id = {added_id}'
+
+		r = get_row(query)
+
+		trades[x]['added_fnf'] = r['fnf']
+
+		query = f'SELECT fnf FROM players WHERE player_id = {dropped_id}'
+
+		r = get_row(query)
+
+		trades[x]['dropped_fnf'] = r['fnf']
+
+		d = trades[x]['stamp'].strftime('%b %-d')
+
+		trades[x]['date'] = trades[x]['stamp'].strftime('%b %-d')
+
+		query = f'SELECT pos FROM playersXseasons WHERE player_id = {dropped_id}'
+
+		r = get_row(query)
+
+		trades[x]['pos'] = r['pos']
+
+	return trades
 
 def make_ordinal(n):
 	n = int(n)
