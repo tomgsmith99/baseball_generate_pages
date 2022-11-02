@@ -1,0 +1,35 @@
+
+<table class="table table-striped table-sm table-bordered">
+
+	<thead>
+		<tr style="text-align: center">
+			<th>Year</th>
+			<th>1st place</th>
+			<th>2nd place</th>
+			<th>3rd place</th>
+			<th>4th place</th>
+			<th>5th place</th>
+			<th>6th place</th>
+		</tr>
+	</thead>
+
+	<tbody>
+
+        {{#seasons}}
+
+        <tr>
+            <td style='text-align: center'><a href = '/seasons/{{season}}'>{{season}}</td>
+            
+            {{#owners}}
+
+            <td><a href = '/owners/{{owner_id}}'>{{nickname}}</a></td>
+
+            {{/owners}}
+                
+        </tr>
+
+        {{/seasons}}
+
+    </tbody>
+
+</table>

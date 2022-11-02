@@ -1,0 +1,145 @@
+
+<p><a href = '#explanations'>Click here for an explanation of the categories</a></p>
+
+<p>Click on a column name to sort by a category.</p>
+
+<table id="my_data_table" class="table table-striped table-bordered table-sm" cellspacing="0" style = "table-layout: fixed; width: 700px;">
+<thead>
+   <tr>
+       <th></th>
+       <th style = "text-align: center">Owner</th>
+       <th></th>
+       <th style = "text-align: center">Apps</th>
+       <th style = "text-align: center">Champs</th>
+       <th style = "text-align: center">Top 6</th>
+       <th style = "text-align: center">Avg. finish</th>
+       <th style = "text-align: center">Rating</th>
+   </tr>
+</thead>
+<tbody>
+
+{{#owners}}
+
+<tr style="vertical-align: middle;">
+    <td class="tablerow"></td>
+    <td class="owner_row_cell"><a href = '/owners/{{owner_id}}'>Kayla</a></td>
+    <td class="owner_row_cell_img">
+        <img src="{{owner_img}}"></td>
+    <td class="owner_row_cell">{{appearances}}</td>
+    <td class="owner_row_cell">{{championships}}</td>
+    <td class="owner_row_cell">{{top_six_finishes}}</td>
+    <td class="owner_row_cell">{{avg_finish}}</td>
+    <td class="owner_row_cell">{{rating}}</td>
+</tr>
+    
+{{/owners}}
+
+</tbody>
+</table>
+
+<a name = 'explanations'>
+
+<h3>Explanation of stat categories</h3>
+
+<p><b>Apps = "Appearances"</b></p>
+
+<p>The number of times an owner has participated in the League.</p>
+
+<p><b>Rookie Year</b></p>
+
+<p>The first year that an owner participated in the League. The league's first year was 1993.</p>
+
+<p><b>Championships</b></p>
+
+<p>The number of times that an owner has won the League.</p>
+
+<p><b>Best Finish</b></p>
+
+<p>The highest position that an owner has ever finished.</p>
+
+<p><b>Top 6 Finishes</b></p>
+
+<p>The number of times that an owner has finished in the top 6 in the end-of-season standings. The League has historically paid the top 6 spots some portion of the pot, so the top six can be considered 'money spots'.</p>
+
+<p><b>Avg Finish</b></p>
+
+<p>The owner's average finishing place in the league. Please note that this statistic favors owners who have been in the league a long time, or who participated in the early years of the league, since there were far fewer participants in the league in the early years. Only average finishes of 24 or greater are displayed. The 'power rating' category is designed to normalize an owner's performance over the years, regardless of how many other owners were playing at the time.</p>
+
+<p><b>Rating</b></p>
+
+<p>An owner's rating represents their overall, historical performance relative to other owners.</p>
+
+<p><i>Note: Owner ratings are calculated only for owners with at least four years of participation in the League, and only ratings of 400 or higher are displayed.</p>
+
+<p>The rating is calculated by:
+
+<ol>
+
+<li>Adding up the position that an owner has finished for every year they have participated in the league. For example, let's say an owner has participated in the League at total of 3 times, in 2002, 2003, and 2005. Let's say they finished 1st in 2002, 6th in 2003, and 18th in 2005. Then, their 'total finish' number would be 1 + 6 + 18 = 25.</li>
+
+<li>Let's say that in 2002 there were 25 participants, 22 in 2003, and 35 in 2005. Then, the 'total owners' number would be 25 + 22 + 35 = 82.</li>
+
+<li>Divide the total finishes (25) by the total owners (82) to get efficiency (0.305). Multiply by 1000 = 305. At this point, the lower the number, the better.</li>
+
+<li>Subtract the efficiency from 1000 so that the higher the number, the better: 1000 - 305 = 695.</li>
+
+</ol>
+
+</p>
+
+<p>Based on this system, the highest possible rating is 1000, and the lowest possible is 0.</p>
+
+
+   </div>
+
+</main>
+
+<!-- SCRIPTS -->
+<!-- JQuery -->
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous"></script>
+
+<!-- MDB core JavaScript -->
+<script type="text/javascript" src="/js/mdb.min.js"></script>
+<!-- MDBootstrap Datatables  -->
+<script type="text/javascript" src="/js/datatables.min.js"></script>
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+
+   var _gaq = _gaq || [];
+   _gaq.push(['_setAccount', 'UA-26481206-1']);
+   _gaq.push(['_trackPageview']);
+
+   (function() {
+       var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+       ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+       var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+   })();
+
+</script>
+
+<script>
+   $(document).ready(function() {
+       var t = $('#my_data_table').DataTable( {
+           "columnDefs": [ {
+               "searchable": false,
+               "orderable": false,
+               "targets": 0
+           } ],
+           "order": [[ 3, 'desc' ]]
+       } );
+
+       t.on( 'order.dt search.dt', function () {
+           t.column(0, {search:'applied', order:'applied'}).nodes().each( function (cell, i) {
+               cell.innerHTML = i+1;
+                   } );
+       } ).draw();
+   } );
+</script>
+</body>
+</html>

@@ -4,12 +4,10 @@ import boto3
 import chevron
 import datetime
 import json
-import mysql.connector
 from mysql.connector import Error
 import os
 import sys
 
-import includes.dbconn
 from includes.dbconn import connection, cursor, get_row, get_rows, pcursor
 
 ###################################################
@@ -28,9 +26,11 @@ make_a_trade_link = 'https://tomgsmith99-baseball-trade.herokuapp.com/'
 
 def generate_page(subject, item_id=0):
 
-	obj = {
-		'page_generated': datetime.datetime.now()
-	}
+	with open('settings.json') as file:
+
+		settings = json.load(file)
+
+	obj = settings[subject]
 
 	if subject == 'current':
 
@@ -47,55 +47,101 @@ def generate_page(subject, item_id=0):
 		obj['last_updated'] = get_last_updated()
 		obj['leaderboards'] = get_leaderboards(season, True)
 
-		path = ''
+		dirs = []
+
+	if subject == 'finishes':
+
+		obj['seasons'] = []
+
+		query = 'SELECT DISTINCT season FROM finishes ORDER BY season DESC'
+
+		rows = get_rows(query)
+
+		for row in rows:
+
+			season = row['season']
+
+			query = f'SELECT owner_id, nickname, place FROM finishes WHERE season = {season} ORDER BY place'
+
+			owners = get_rows(query)
+
+			obj['seasons'].append({
+				'season': season,
+				'owners': owners
+			})
 
 	if subject == 'history':
-
-		obj['title'] = 'Baseball: History'
-		obj['history'] = True
 
 		with open('./data/history.json') as json_file:
 			obj['sections'] = json.load(json_file)
 
-		path = 'history/'
+	if subject == 'owners':
+
+		query = 'SELECT DISTINCT season FROM finishes ORDER BY season DESC'
+
+		rows = get_rows(query)
+
+		for row in rows:
+
+			print(row)
+
+		exit()
 
 	if subject == 'players':
 
 		season = item_id
 
-		obj['title'] = 'Baseball: ' + str(season) + ' Players'
-		obj['players_page'] = True
 		obj['season'] = season
+
+		obj['heading'] = obj['heading'] + ' ' + str(season)
+
 		obj['players'] = get_players(season)
 
-		path = f'seasons/{season}/players/'
+		obj['dirs'][1] = season
+
+	if subject == 'records':
+
+		obj['records'] = True
 
 	if subject == 'season':
 
 		season = item_id
 
-		obj['title'] = 'Baseball: Final Standings ' + str(season)
-		obj['season_page'] = True
+		obj['heading'] = obj['heading'] + ' ' + str(season)
+
 		obj['season'] = season
-		obj['season_is_current'] = False
 		obj['owner_rows'] = get_owner_rows(season)
 		obj['owners'] = get_owners(season)
 		obj['teams'] = get_teams(season)
 		obj['leaderboards'] = get_leaderboards(season, False)
 
-		path = f'seasons/{season}/'
+		obj['dirs'][1] = season
+
+	if subject == 'seasons_home':
+
+		obj['seasons'] = []
+
+		for x in range(env['season_last'], env['season_first'] -1, -1):
+
+			obj['seasons'].append({"season": x})
+
+			print(str(x))
 
 	if subject == 'trades':
 
 		season = item_id
 
-		obj['title'] = 'Baseball: Trades ' + str(season)
-		obj['trades_page'] = True
 		obj['season'] = season
+
+		obj['heading'] = obj['heading'] + ' ' + str(season)
+
 		obj['trades'] = get_trades(season)
+
 		obj['make_a_trade_link'] = make_a_trade_link
 
-		path = f'seasons/{season}/trades/'
+		obj['dirs'][1] = season
+
+	obj['page_generated'] = datetime.datetime.now()
 
 	###############################################
 	# generate files
@@ -112,11 +158,28 @@ def generate_page(subject, item_id=0):
 
 		page = chevron.render(**args)
 
-	path = path + 'index.html'
+	p = env["local_home"]
 
-	if env['create_local_files']:
+	dir_path = ""
 
-		write_local_file(f'{env["local_home"]}{path}', page)
+	for dir in obj['dirs']:
+		print(dir)
+
+		dir_path = dir_path + dir + "/"
+
+		p = p + "/" + dir
+
+		if not os.path.exists(f'{env["local_home"]}/{dir_path}'):
+
+			print("making directory " + p)
+
+			os.makedirs(f'{env["local_home"]}/{dir_path}')
+
+	local_path = f'{env["local_home"]}/{dir_path}index.html'
+
+	print(local_path)
+
+	write_local_file(local_path, page)
 
 	if globals()['push_to_s3']:
 
@@ -133,20 +196,11 @@ def generate_page(subject, item_id=0):
 
 		my_bucket = s3.Bucket(s3_bucket)
 
+		path = dir_path + "index.html"
+
+		print("the path is: " + path)
+		
 		my_bucket.put_object(Key=path, Body=page, ContentType='text/html', ACL='public-read')
-
-		# s3.Bucket(s3_bucket).put_object(Key=path, Body=page, ContentType='text/html', ACL='public-read')
-
-		# if page == "home" or page == "players":
-		# 	x = datetime.datetime.now()
-
-		# 	filename_base = x.strftime("%Y_%m_%d_%H_%M_%S")
-
-		# 	filename = filename_base + ".html"
-
-		# 	backup_path = "backup/" + remote_path + filename
-
-		# 	s3.Bucket(s3_bucket).put_object(Key=backup_path, Body=content, ContentType='text/html', ACL='public-read')
 
 	else:
 		print('push_to_s3 is false.')
@@ -165,6 +219,38 @@ def get_command_line_args():
 
 	########################################
 
+	with open('settings.json') as file:
+
+		settings = json.load(file)
+
+	valid_section = False
+
+	for section in settings.keys():
+
+		arg = f'--{section}'
+
+		if arg in sys.argv:
+
+			valid_section = True
+
+			page = settings[section]
+
+			if 'requires_season' in page and page['requires_season']:
+
+				index = sys.argv.index(f'--{section}')
+
+				season = sys.argv[index + 1]
+
+				generate_page(section, season)
+			
+			else:
+				generate_page(section)
+
+	if not valid_section:
+		print('sorry, you did not provide a valid section name')
+
+	exit()
+
 	if '--current' in sys.argv:
 
 		generate_page('current')
@@ -178,10 +264,6 @@ def get_command_line_args():
 		print('--season [season]: generate the season home page for a season')
 
 		exit()
-
-	if '--history' in sys.argv:
-
-		generate_page('history')
 
 	if '--players' in sys.argv:
 
@@ -201,15 +283,9 @@ def get_command_line_args():
 
 		generate_page('season', season)
 
-	if '--trades' in sys.argv:
+	if '--seasons_home' in sys.argv:
 
-		index = sys.argv.index('--trades')
-
-		season = sys.argv[index + 1]
-
-		print('the season is: ' + season)
-
-		generate_page('trades', season)
+		generate_page('seasons_home')
 
 	for x in range(0, len(sys.argv)):
 
@@ -480,43 +556,6 @@ def push_to_s3(path, page):
 	my_bucket = s3.Bucket(s3_bucket)
 
 	my_bucket.put_object(Key=path, Body=page, ContentType='text/html', ACL='public-read')
-
-	# s3.Bucket(s3_bucket).put_object(Key=path, Body=page, ContentType='text/html', ACL='public-read')
-
-	# if page == "home" or page == "players":
-	# 	x = datetime.datetime.now()
-
-	# 	filename_base = x.strftime("%Y_%m_%d_%H_%M_%S")
-
-	# 	filename = filename_base + ".html"
-
-	# 	backup_path = "backup/" + remote_path + filename
-
-	# 	s3.Bucket(s3_bucket).put_object(Key=backup_path, Body=content, ContentType='text/html', ACL='public-read')
-
-def show_options():
-
-	print('1) current home page')
-	print('2) players page')
-	print('3) generate history page')
-
-	val = int(input("Which do you want to do? "))
-
-	print(val)
-
-	if val == 1:
-
-		generate_page('current')
-
-	if val == 2:
-
-		val = int(input("Which season? "))
-
-		generate_page('players', val)
-
-	if val == 3:
-
-		generate_page('history')
 
 def write_local_file(path, page):
 

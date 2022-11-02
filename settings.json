@@ -1,0 +1,45 @@
+{
+    "finishes": {
+        "dirs": ["finishes"],
+        "heading": "Finishes",
+        "finishes_page": true
+    },
+    "history": {
+        "dirs": ["history"],
+        "heading": "A Brief History of the League",
+        "history_page": true
+    },
+    "owners": {
+        "dirs": ["owners"],
+        "heading": "Owners",
+        "players_page": true
+    },
+    "players": {
+        "dirs": ["seasons", "{season}", "players"],
+        "heading": "Players",
+        "requires_season": true,
+        "players_page": true
+    },
+    "records": {
+        "dirs": ["records"],
+        "heading": "Records",
+        "records_page": true
+    },
+    "season": {
+        "dirs": ["seasons", "{season}"],
+        "heading": "Final Standings",
+        "requires_season": true,
+        "season_page": true
+    },
+    "seasons_home": {
+        "dirs": ["seasons"],
+        "heading": "Seasons",
+        "seasons_home_page": true
+    },
+    "trades": {
+        "dirs": ["seasons", "{season}", "trades"],
+        "heading": "Trades",
+        "requires_season": true,
+        "trades_page": true
+    }
+}

@@ -20,7 +20,7 @@ def get_players_page_content(connection, season):
 
 	content["title"] = f'Baseball {season}: Players'
 
-	query = f'SELECT * FROM player_x_season_detail WHERE season={season} ORDER BY points DESC, lnf ASC'
+	query = f'SELECT * FROM player_x_season WHERE season={season} ORDER BY points DESC, lnf ASC'
 
 	html = ""
 

@@ -6,7 +6,7 @@
 
 <head>
 
-	<title>{{title}}</title>
+	<title>Baseball: {{heading}}</title>
 
 	<meta http-equiv="content-type" content="text/html;charset=utf-8">
 
@@ -55,8 +55,6 @@
 
 <body>
 
-	<a id="top"></a>
-
 	<nav class="navbar navbar-expand-md">
 
 		<a class="navbar-brand" href="/">Home</a>
@@ -83,6 +81,7 @@
 				<li class="nav-item dropdown">
 					<a class="nav-link dropdown-toggle" href="#" id="dropdown_seasons" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Seasons</a>
 					<div class="dropdown-menu" aria-labelledby="dropdown01">
+						<a class="dropdown-item" href="/seasons/2022">2022</a>
 						<a class="dropdown-item" href="/seasons/2021">2021</a>
 						<a class="dropdown-item" href="/seasons/2020">2020</a>
 						<a class="dropdown-item" href="/seasons/2019">2019</a>
@@ -106,13 +105,23 @@
 
 	<main role="main" class="container">
 
+		<a id="top"></a>
+
+		<h3 style="margin-top:10px">{{heading}}</h3>
+
 		<div class="starter-template" style="margin-top:10px">
 
-			{{#history}}{{>history}}{{/history}}
+			{{#finishes_page}}{{> finishes}}{{/finishes_page}}
+
+			{{#history_page}}{{>history}}{{/history_page}}
 
 			{{#players_page}}{{> players_page}}{{/players_page}}
 
+			{{#records_page}}{{> records}}{{/records_page}}
+
 			{{#season_page}}{{> season}}{{/season_page}}
+
+			{{#seasons_home_page}}{{> seasons_home_page}}{{/seasons_home_page}}
 
 			{{#trades_page}}{{> trades_page}}{{/trades_page}}
 
