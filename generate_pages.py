@@ -20,9 +20,7 @@ with open('.env.json') as json_file:
 globals()['push_to_s3'] = False
 globals()['season'] = env['season']
 
-test_owner_id = '63'
-
-make_a_trade_link = 'https://tomgsmith99-baseball-trade.herokuapp.com/'
+TEST_OWNER_ID = '63'
 
 ###################################################
 
@@ -79,7 +77,7 @@ def generate_page(subject, item_id=0):
 
 	if subject == 'owners':
 
-		query = f'SELECT * FROM owner_stats WHERE owner_id != {test_owner_id} ORDER BY nickname ASC'
+		query = f'SELECT * FROM owner_stats WHERE owner_id != {TEST_OWNER_ID} ORDER BY nickname ASC'
 
 		obj['owners'] = get_rows(query)
 
@@ -135,7 +133,9 @@ def generate_page(subject, item_id=0):
 
 		obj['trades'] = get_trades(season)
 
-		obj['make_a_trade_link'] = make_a_trade_link
+		obj['make_a_trade_link'] = env['make_a_trade_link']
+
+		obj['show_trade_button'] = not env['offseason']
 
 		obj['dirs'][1] = season
 
@@ -418,7 +418,7 @@ def get_leaders(col, person_type, season, picked_only=True):
 
 def get_owner_rows(season):
 
-	query = f'SELECT * FROM ownersXseasons_detail WHERE season = {season} AND owner_id != 63 ORDER BY place, nickname ASC'
+	query = f'SELECT * FROM ownersXseasons_detail WHERE season = {season} AND owner_id != {TEST_OWNER_ID} ORDER BY place, nickname ASC'
 
 	rows = get_rows(query)
 
@@ -464,7 +464,7 @@ def get_roster(owner_id, season, active_or_benched):
 
 def get_teams(season):
 
-	query = f'SELECT DISTINCT owner_id FROM ownersXseasons_detail WHERE season = {season} AND owner_id != 63 ORDER BY nickname ASC'
+	query = f'SELECT DISTINCT owner_id FROM ownersXseasons_detail WHERE season = {season} AND owner_id != {TEST_OWNER_ID} ORDER BY nickname ASC'
 
 	rows = get_rows(query)
 
@@ -497,7 +497,7 @@ def get_teams(season):
 
 def get_trades(season): 
 
-	query = f'SELECT * FROM trades_detail WHERE season = {season} AND owner_id != 63 ORDER BY stamp DESC'
+	query = f'SELECT * FROM trades_detail WHERE season = {season} AND owner_id != {TEST_OWNER_ID} ORDER BY stamp DESC'
 
 	trades = get_rows(query)
 
