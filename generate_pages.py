@@ -20,6 +20,8 @@ with open('.env.json') as json_file:
 globals()['push_to_s3'] = False
 globals()['season'] = env['season']
 
+test_owner_id = '63'
+
 make_a_trade_link = 'https://tomgsmith99-baseball-trade.herokuapp.com/'
 
 ###################################################
@@ -77,15 +79,11 @@ def generate_page(subject, item_id=0):
 
 	if subject == 'owners':
 
-		query = 'SELECT DISTINCT season FROM finishes ORDER BY season DESC'
+		query = f'SELECT * FROM owner_stats WHERE owner_id != {test_owner_id} ORDER BY nickname ASC'
 
-		rows = get_rows(query)
+		obj['owners'] = get_rows(query)
 
-		for row in rows:
-
-			print(row)
-
-		exit()
+		# print(obj['owners'])
 
 	if subject == 'players':
 

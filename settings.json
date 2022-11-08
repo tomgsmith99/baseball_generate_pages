@@ -12,7 +12,7 @@
     "owners": {
         "dirs": ["owners"],
         "heading": "Owners",
-        "players_page": true
+        "owners_page": true
     },
     "players": {
         "dirs": ["seasons", "{season}", "players"],

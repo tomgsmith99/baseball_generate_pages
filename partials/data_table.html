@@ -1,0 +1,39 @@
+
+	<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.0/js/jquery.dataTables.min.js"></script>
+
+
+	<script type="text/javascript">
+
+		$(document).ready(function () {
+		    var t = $('#data_table').DataTable({
+		        columnDefs: [
+				    {
+		                targets: [3],
+		                orderData: [3, 1]
+		            },
+		            {
+		                targets: [4],
+		                orderData: [4, 1]
+		            },
+		            {
+		                targets: [5],
+		                orderData: [5, 1]
+		            },
+		            {
+		                targets: [6],
+		                orderData: [6, 1]
+		            }
+		        ],
+		        order: [[1, 'asc'], [3, 'desc']],
+		    });
+		 
+		    t.on('order.dt search.dt', function () {
+		        let i = 1;
+		 
+		        t.cells(null, 0, { search: 'applied', order: 'applied' }).every(function (cell) {
+		            this.data(i++);
+		        });
+		    }).draw();
+		});
+
+	</script>

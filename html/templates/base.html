@@ -14,11 +14,8 @@
 
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
 
-	{{#players_page}}
-
-	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.0/css/jquery.dataTables.min.css">
-
-	{{/players_page}}
+	{{#players_page}}{{>data_tables_css}}{{/players_page}}
+	{{#owners_page}}{{>data_tables_css}}{{/owners_page}}
 
 	<!-- Font Awesome -->
 	<link
@@ -115,6 +112,8 @@
 
 			{{#history_page}}{{>history}}{{/history_page}}
 
+			{{#owners_page}}{{>owners}}{{/owners_page}}
+
 			{{#players_page}}{{> players_page}}{{/players_page}}
 
 			{{#records_page}}{{> records}}{{/records_page}}
@@ -152,18 +151,8 @@
 		})();
 	</script>
 
-	{{#players_page}}
-
-	<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.0/js/jquery.dataTables.min.js"></script>
-
-	<script>
-		$(document).ready( function () {
-			$('#players_table').DataTable();
-		});
-
-	</script>
-
-	{{/players_page}}
+	{{#owners_page}}{{>data_table}}{{/owners_page}}
+	{{#players_page}}{{>data_table}}{{/players_page}}
 
 	</body>
 </html>
