@@ -29,7 +29,8 @@
         "dirs": ["seasons", "{season}"],
         "heading": "Final Standings",
         "requires_season": true,
-        "season_page": true
+        "season_page": true,
+        "show_leaderboards": true
     },
     "seasons_home": {
         "dirs": ["seasons"],

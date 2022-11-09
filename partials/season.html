@@ -20,6 +20,8 @@
 
 				<div class="col-4">
 
+					{{#show_full_stats}}
+
 					{{#season_is_current}}
 					<div id = "last_updated" style="margin-top:10px">
 						<p>last updated: {{last_updated}}</p>
@@ -46,6 +48,7 @@
 						</a>
 					</div>
 
+					{{#show_trades}}
 					<div id="trades_link" style="margin-bottom: 10px">
 						<a target = "_blank" href = "/seasons/{{season}}/trades">
 							<button class="btn btn-info" type="button">
@@ -53,8 +56,10 @@
 						</button>
 						</a>
 					</div>
+					{{/show_trades}}
 
-					<!-- leaderboard -->
+
+					<!-- leaderboards -->
 
 					<div>
 						<table class="table table-sm table-striped">
@@ -82,7 +87,11 @@
 						</table>
 					</div>
 
+					{{/show_full_stats}}
+
 				</div>
+
+			{{#show_full_stats}}
 
 			<div class="row">
 
@@ -173,3 +182,5 @@
 				</div>
 
 			</div>
+
+			{{/show_full_stats}}

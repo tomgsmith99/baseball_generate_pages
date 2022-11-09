@@ -109,7 +109,17 @@ def generate_page(subject, item_id=0):
 		obj['owner_rows'] = get_owner_rows(season)
 		obj['owners'] = get_owners(season)
 		obj['teams'] = get_teams(season)
-		obj['leaderboards'] = get_leaderboards(season, False)
+
+		if int(season) >= env['full_stats_begin']:
+			obj['show_full_stats'] = True
+			obj['leaderboards'] = get_leaderboards(season, False)
+		else:
+			obj['show_leaderboards'] = False
+
+		if is_valid_trade_season(int(season)):
+			obj['show_trades'] = True
+		else:
+			obj['show_trades'] = False
 
 		obj['dirs'][1] = season
 
@@ -221,6 +231,32 @@ def get_command_line_args():
 
 		settings = json.load(file)
 
+	if '--seasons' in sys.argv:
+
+		for season in range(env['season_last'], env['season_first'] - 1, -1):
+
+			generate_page('season', str(season))
+
+		exit()
+
+	if '--players_all_seasons' in sys.argv:
+
+		for season in range(env['season_last'], env['full_stats_begin'] - 1, -1):
+
+			generate_page('players', str(season))
+
+		exit()
+
+	if '--trades_all_seasons' in sys.argv:
+
+		for season in range(env['season_last'], env['full_stats_begin'] - 1, -1):
+
+			if is_valid_trade_season(int(season)):
+
+				generate_page('trades', str(season))
+
+		exit()
+
 	valid_section = False
 
 	for section in settings.keys():
@@ -262,28 +298,6 @@ def get_command_line_args():
 		print('--season [season]: generate the season home page for a season')
 
 		exit()
-
-	if '--players' in sys.argv:
-
-		index = sys.argv.index('--players')
-
-		season = sys.argv[index + 1]
-
-		generate_page('players', season)
-
-	if '--season' in sys.argv:
-
-		index = sys.argv.index('--season')
-
-		season = sys.argv[index + 1]
-
-		print('the season is: ' + season)
-
-		generate_page('season', season)
-
-	if '--seasons_home' in sys.argv:
-
-		generate_page('seasons_home')
 
 	for x in range(0, len(sys.argv)):
 
@@ -497,39 +511,25 @@ def get_teams(season):
 
 def get_trades(season): 
 
-	query = f'SELECT * FROM trades_detail WHERE season = {season} AND owner_id != {TEST_OWNER_ID} ORDER BY stamp DESC'
+	query = f'SELECT * FROM trades_detail WHERE season = {season} AND owner_id != {TEST_OWNER_ID} ORDER BY stamp, day DESC'
 
 	trades = get_rows(query)
 
 	for x in range(0, len(trades)):
 
-		added_id = trades[x]['added_player_id']
+		new_date = datetime.datetime(trades[x]['season'], 1, 1) + datetime.timedelta(trades[x]['day'] - 1)
 
-		dropped_id = trades[x]['dropped_player_id']
-
-		query = f'SELECT fnf FROM players WHERE player_id = {added_id}'
-
-		r = get_row(query)
-
-		trades[x]['added_fnf'] = r['fnf']
-
-		query = f'SELECT fnf FROM players WHERE player_id = {dropped_id}'
-
-		r = get_row(query)
-
-		trades[x]['dropped_fnf'] = r['fnf']
-
-		d = trades[x]['stamp'].strftime('%b %-d')
-
-		trades[x]['date'] = trades[x]['stamp'].strftime('%b %-d')
-
-		query = f'SELECT pos FROM playersXseasons WHERE player_id = {dropped_id}'
-
-		r = get_row(query)
-
-		trades[x]['pos'] = r['pos']
+		trades[x]['date'] = str(new_date)[5:10]
 
 	return trades
+
+def is_valid_trade_season(season):
+
+	if season > 2005:
+		if season != 2020 and season != 2019:
+			return True
+
+	return False
 
 def make_ordinal(n):
 	n = int(n)
