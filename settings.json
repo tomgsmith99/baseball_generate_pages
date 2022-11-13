@@ -1,5 +1,5 @@
 {
-    "finishes": {
+    "top_six_finishes": {
         "dirs": ["finishes"],
         "heading": "Finishes",
         "finishes_page": true
@@ -9,6 +9,12 @@
         "heading": "A Brief History of the League",
         "history_page": true
     },
+    "owner": {
+        "dirs": ["owners", "{owner_id}"],
+        "heading": "{nickname}",
+        "requires_id": true,
+        "owner_page": true
+    },
     "owners": {
         "dirs": ["owners"],
         "heading": "Owners",
@@ -17,7 +23,7 @@
     "players": {
         "dirs": ["seasons", "{season}", "players"],
         "heading": "Players",
-        "requires_season": true,
+        "requires_id": true,
         "players_page": true
     },
     "records": {
@@ -28,7 +34,7 @@
     "season": {
         "dirs": ["seasons", "{season}"],
         "heading": "Final Standings",
-        "requires_season": true,
+        "requires_id": true,
         "season_page": true,
         "show_leaderboards": true
     },
@@ -40,7 +46,7 @@
     "trades": {
         "dirs": ["seasons", "{season}", "trades"],
         "heading": "Trades",
-        "requires_season": true,
+        "requires_id": true,
         "trades_page": true
     }
 }

@@ -5,6 +5,7 @@
 			<h3 style="margin-top:10px">{{nickname}}</h3>
 		</div>
 
+	{{#owner}}
 	<div class="row">
 
 		<div class="col-6">
@@ -15,6 +16,8 @@
 					<tr>
 						<td>Most recent appearance</td>
 						<td>{{most_recent_appearance}}</td>
+					</tr>
+					<tr>
 						<td>Rookie year</td>
 						<td>{{rookie_year}}</td>
 					</tr>
@@ -23,12 +26,6 @@
 						<td>Best finish</td>
 						<td>{{best_finish}}</td>
 						<td>{{best_finish_detail}}</td>
-					</tr>
-
-					<tr>
-						<td>Category</td>
-						<td></td>
-						<td>Rank</td>
 					</tr>
 
 					<tr>
@@ -45,14 +42,8 @@
 
 					<tr>
 						<td>Top six (money) finishes</td>
-						<td>{{money_finishes_count}}</td>
-						<td>{{money_finishes_desc}}</td>
-					</tr>
-
-					<tr>
-						<td>Avg. Finish</td>
-						<td>{{avg_finish}}</td>
-						<td>{{avg_finish_desc}}</td>
+						<td>{{top_six_finishes_count}}</td>
+						<td>{{top_six_finishes_desc}}</td>
 					</tr>
 
 					<tr>
@@ -66,13 +57,20 @@
 
 		</div>
 
-		<div class="col-6">
-			<img src="{{headshot}}" />
+		<div class="col-2" style = "text-align: center;">
+			<img src="{{owner_img}}" />
 
-			<div class="dropdown">
+			<div class="dropdown" style = "margin-top: 20px;">
 				<button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Seasons</button>
 				<div class="dropdown-menu scrollable-menu" aria-labelledby="dropdownMenuButton">
-					{{season_links}}
+					{{#seasons_with_rosters}}
+					<a class="dropdown-item" href="#{{season}}_{{owner_id}}">{{season}}</a>
+					{{/seasons_with_rosters}}
+
+					{{#has-finishes-pre-full-stats}}
+					<a class="dropdown-item" href="#finishes">pre-2004</a>
+					{{/has-finishes-pre-full-stats}}
+
 				</div>
 			</div>
 		</div>
@@ -86,10 +84,13 @@
 				<tbody>
 
 					<tr>
-						<td>Most-picked players</td>
+						<td>Most-picked players<br>(since 2004)</td>
 
 						<td>
-						{{most_picked_players}}
+
+							{{#most_picked_players}}
+							<a href = ''>{{fnf}}</a>, {{drafted}} times: {{desc}}<br>
+							{{/most_picked_players}}
 						</td>
 
 					</tr>
@@ -104,3 +105,31 @@
 		</div>
 
 	</div>
+
+	<div id = 'seasons' class = 'col-6'>
+		{{#teams}}{{>owner_x_team_x_season}}{{/teams}}
+	</div>
+
+	{{#has-finishes-pre-full-stats}}
+
+	<a name = "finishes"></a>
+	<div class="row">
+		<!-- finishes prior to 2004 (no team rosters available)-->
+	<div id = 'pre-2004-finishes' class="col-4">
+
+		<h3>Finishes pre-2004</h3>
+
+		<table class="table table-striped table-bordered table-sm">
+			<tr><th>Season</th><th>Place</th><th>Points</th></tr>
+			{{#finishes}}
+			<tr><td><a href = "/seasons/{{season}}">{{season}}</td><td>{{place}}</td><td>{{points}}</td></tr>
+			{{/finishes}}
+		</table>
+
+		<a href = "#top">Top</a>
+	</div>
+	</div>
+
+	{{/has-finishes-pre-full-stats}}
+
+	{{/owner}}

@@ -2,6 +2,7 @@
 
 import boto3
 import chevron
+import copy
 import datetime
 import json
 from mysql.connector import Error
@@ -15,26 +16,84 @@ from includes.dbconn import connection, cursor, get_row, get_rows, pcursor
 with open('.env.json') as json_file:
 	env = json.load(json_file)
 
+with open('settings.json') as file:
+	settings = json.load(file)
+
+sections = list(settings.keys())
+
+special_args = ['current', 'owners_all', 'players_all_seasons', 'seasons_all', 'trades_all_seasons']
+
+valid_args = sections + special_args
+
 ###################################################
 
-globals()['push_to_s3'] = False
-globals()['season'] = env['season']
+PUSH_TO_S3 = False
 
 TEST_OWNER_ID = '63'
 
 ###################################################
 
+def evaluate_kw(kw):
+
+	global sections
+
+	if kw in sections:
+		print("the keyword is in a section.")
+
+		if 'requires_id' in settings[kw] and settings[kw]['requires_id']:
+
+			if len(sys.argv) < 3:
+				print("you must supply an id on the command line for this to work.")
+
+			else:
+				generate_page(kw, sys.argv[2])
+
+		else:
+			generate_page(kw)
+
+		exit()
+		
+	else:
+
+		if kw == 'owners_all':
+
+			query = f'SELECT owner_id FROM owner_valid ORDER BY owner_id ASC'
+
+			owners = get_rows(query)
+
+			for owner in owners:
+
+				generate_page('owner', str(owner['owner_id']))
+		
+		if kw == 'players_all_seasons':
+
+			for season in range(env['season_last'], env['full_stats_begin'] - 1, -1):
+
+				generate_page('players', str(season))
+
+		if kw == 'seasons_all':
+
+			for season in range(env['season_last'], env['season_first'] - 1, -1):
+
+				generate_page('season', str(season))
+
+		if kw == 'trades_all_seasons':
+
+			for season in range(env['season_last'], env['full_stats_begin'] - 1, -1):
+
+				if is_valid_trade_season(int(season)):
+
+					generate_page('trades', str(season))
+
+		exit()
+
 def generate_page(subject, item_id=0):
 
-	with open('settings.json') as file:
-
-		settings = json.load(file)
-
-	obj = settings[subject]
+	obj = copy.deepcopy(settings[subject])
 
 	if subject == 'current':
 
-		season = globals()['season']
+		season = env['season']
 
 		obj['title'] = 'Baseball ' + str(season)
 		obj['make_a_trade'] = 'none'
@@ -49,11 +108,11 @@ def generate_page(subject, item_id=0):
 
 		dirs = []
 
-	if subject == 'finishes':
+	if subject == 'top_six_finishes':
 
 		obj['seasons'] = []
 
-		query = 'SELECT DISTINCT season FROM finishes ORDER BY season DESC'
+		query = 'SELECT DISTINCT season FROM owner_x_top_six_finishes ORDER BY season DESC'
 
 		rows = get_rows(query)
 
@@ -61,7 +120,7 @@ def generate_page(subject, item_id=0):
 
 			season = row['season']
 
-			query = f'SELECT owner_id, nickname, place FROM finishes WHERE season = {season} ORDER BY place'
+			query = f'SELECT owner_id, nickname, place FROM owner_x_top_six_finishes WHERE season = {season} ORDER BY place'
 
 			owners = get_rows(query)
 
@@ -75,13 +134,111 @@ def generate_page(subject, item_id=0):
 		with open('./data/history.json') as json_file:
 			obj['sections'] = json.load(json_file)
 
+	if subject == 'owner':
+
+		owner_id = item_id
+
+		query = f'SELECT * FROM owner_stats WHERE owner_id = {owner_id}'
+
+		owner = get_row(query)
+
+		obj['heading'] = owner['nickname']
+
+		owner['best_finish_detail'] = get_best_finish_detail(owner_id, owner['best_finish'])
+
+		owner['best_finish'] = make_ordinal(owner['best_finish'])
+
+		owner['appearances_desc'] = get_desc("appearances_rank", owner['appearances_rank'])
+		owner['championships_desc'] = get_desc("championships_rank", owner['championships_rank'])
+		owner['top_six_finishes_desc'] = get_desc("top_six_finishes_rank", owner['top_six_finishes_rank'])
+		owner['rating_desc'] = get_desc("rating_rank", owner['rating_rank'])
+
+		######################################################
+		# Get seasons for this owner
+
+		owner['seasons'] = []
+
+		query = f'SELECT season FROM ownersXseasons WHERE owner_id = {owner_id} ORDER BY season DESC'
+
+		owner['seasons'] = get_rows(query)
+
+		######################################################
+		# Get list of seasons with rosters
+		# Also figure out if owner has appearances prior to 2004
+
+		owner['has-finishes-pre-full-stats'] = False
+
+		owner['seasons_with_rosters'] = []
+
+		for season in owner['seasons']:
+			if season['season'] < env['full_stats_begin']:
+				owner['has-finishes-pre-full-stats'] = True
+			else:
+				owner['seasons_with_rosters'].append(season)
+
+		######################################################
+		# Get most-picked players for this owner
+
+		query = f'SELECT player_id, drafted, fnf FROM owner_x_player_sums WHERE owner_id = {owner_id} ORDER BY drafted DESC, fnf ASC LIMIT 5'
+
+		players = get_rows(query)
+
+		for x in range(0, len(players)):
+
+			player_id = players[x]['player_id']
+
+			query = f'SELECT season FROM ownersXrosters WHERE player_id = {player_id} AND owner_id = {owner_id} AND drafted = 1'
+
+			rows = get_rows(query)
+
+			seasons = ""
+
+			for row in rows:
+
+				seasons = seasons + str(row['season']) + ", "
+			
+			seasons = seasons[:-2]
+
+			players[x]['desc'] = seasons
+
+		owner['most_picked_players'] = players
+
+		######################################################
+		# Get all teams for this owner
+
+		owner['teams'] = []
+
+		for season in owner['seasons']:
+
+			if season['season'] >= int(env['full_stats_begin']):
+
+				team = get_team(owner_id, season['season'])
+
+				owner['teams'].append(team)
+
+		######################################################
+		# Get pre-2004 finishes
+
+		if owner['has-finishes-pre-full-stats']:
+
+			query = f'SELECT season, place, points FROM ownersXseasons WHERE season < {env["full_stats_begin"]} AND owner_id = {owner_id} ORDER BY season DESC'
+
+			owner['finishes'] = get_rows(query)
+
+			for x in range (0, len(owner['finishes'])):
+				owner['finishes'][x]['place'] = make_ordinal(owner['finishes'][x]['place'])
+
+		######################################################
+
+		obj['owner'] = owner
+
+		obj['dirs'][1] = owner_id
+
 	if subject == 'owners':
 
 		query = f'SELECT * FROM owner_stats WHERE owner_id != {TEST_OWNER_ID} ORDER BY nickname ASC'
 
 		obj['owners'] = get_rows(query)
-
-		# print(obj['owners'])
 
 	if subject == 'players':
 
@@ -189,149 +346,49 @@ def generate_page(subject, item_id=0):
 
 	write_local_file(local_path, page)
 
-	if globals()['push_to_s3']:
+	if PUSH_TO_S3:
 
-		print('pushing page to s3...')
-
-		session = boto3.Session(
-			aws_access_key_id=env['accessKeyId'],
-			aws_secret_access_key=env['secretAccessKey']
-		)
-
-		s3 = session.resource('s3')
-
-		s3_bucket = env["s3_bucket"]
-
-		my_bucket = s3.Bucket(s3_bucket)
-
-		path = dir_path + "index.html"
-
-		print("the path is: " + path)
-		
-		my_bucket.put_object(Key=path, Body=page, ContentType='text/html', ACL='public-read')
+		push_page_to_s3(dir_path + "index.html", page)
 
 	else:
 		print('push_to_s3 is false.')
 
-def get_command_line_args():
+def get_best_finish_detail(owner_id, best_finish):
 
-	print ('Number of arguments:' + str(len(sys.argv)))
-	print ('Argument List:' + str(sys.argv))
+	best_finish_detail = ""
 
-	if len(sys.argv) == 1:
-		return False
+	query = f'SELECT season FROM ownersXseasons WHERE place = {best_finish} AND owner_id = {owner_id} ORDER BY season ASC'
 
-	if '--push_to_s3' in sys.argv:
+	rows = get_rows(query)
 
-		globals()['push_to_s3'] = True
+	for row in rows:
 
-	########################################
+		best_finish_detail += str(row['season']) + ", "
 
-	with open('settings.json') as file:
+	best_finish_detail = best_finish_detail[:-2]
 
-		settings = json.load(file)
+	return best_finish_detail
 
-	if '--seasons' in sys.argv:
+def get_desc(column, rank):
 
-		for season in range(env['season_last'], env['season_first'] - 1, -1):
+	query = f'SELECT COUNT({column}) AS c FROM owner_stats WHERE {column} = {rank}'
 
-			generate_page('season', str(season))
+	row = get_row(query)
 
-		exit()
+	ordinal_str = make_ordinal(rank)
 
-	if '--players_all_seasons' in sys.argv:
+	owner_count = row['c']
 
-		for season in range(env['season_last'], env['full_stats_begin'] - 1, -1):
+	if owner_count == 1:
+		return ordinal_str
+	else:
+		s = f'Tied for {ordinal_str} with {owner_count - 1} other owner'
 
-			generate_page('players', str(season))
+		if owner_count > 3:
 
-		exit()
+			s = s + "s"
 
-	if '--trades_all_seasons' in sys.argv:
-
-		for season in range(env['season_last'], env['full_stats_begin'] - 1, -1):
-
-			if is_valid_trade_season(int(season)):
-
-				generate_page('trades', str(season))
-
-		exit()
-
-	valid_section = False
-
-	for section in settings.keys():
-
-		arg = f'--{section}'
-
-		if arg in sys.argv:
-
-			valid_section = True
-
-			page = settings[section]
-
-			if 'requires_season' in page and page['requires_season']:
-
-				index = sys.argv.index(f'--{section}')
-
-				season = sys.argv[index + 1]
-
-				generate_page(section, season)
-			
-			else:
-				generate_page(section)
-
-	if not valid_section:
-		print('sorry, you did not provide a valid section name')
-
-	exit()
-
-	if '--current' in sys.argv:
-
-		generate_page('current')
-
-	if '--help' in sys.argv or '-h' in sys.argv:
-
-		print('available commands: ')
-		print('--current: generate current season home page')
-		print('--history: generate the narrative history page')
-		print('--players [season]: generate the players home page for a season')
-		print('--season [season]: generate the season home page for a season')
-
-		exit()
-
-	for x in range(0, len(sys.argv)):
-
-		arg = sys.argv[x]
-
-		if arg == "--owner":
-
-			owner_id = sys.argv[x + 1]
-
-			print("the owner id is: " + str(owner_id))
-
-			create_owner_page(owner_id)
-
-		if arg == "--seasons":
-
-			query = "SELECT * FROM seasons"
-
-			rows = get_rows(query)
-
-			for row in rows:
-				season = row['season']
-
-				if season == env["current_season"]:
-					season_is_current = True
-				else:
-					season_is_current = False
-
-				print("generating home page for season " + str(season))
-
-				generate_season_home_page(connection, season, season_is_current, s3, env)
-
-			generate_season_nav_page(connection, s3, env)
-
-	exit()
+		return s
 
 def get_last_updated():
 
@@ -476,36 +533,38 @@ def get_roster(owner_id, season, active_or_benched):
 
 	return players
 
+def get_team(owner_id, season):
+
+	query = f'SELECT bank, nickname, owner_id, place, points, recent, salary, season, team_name, yesterday FROM ownersXseasons_detail WHERE owner_id = {owner_id} AND season = {season}'
+
+	team = get_row(query)
+
+	team['place'] = make_ordinal(team['place'])
+
+	team['active_players'] = get_roster(owner_id, season, "active")
+
+	benched_players = get_roster(owner_id, season, "benched")
+
+	if (len(benched_players)) > 0:
+		team['has_benched_players'] = True
+
+		team['benched_players'] = benched_players
+	
+	return team
+
 def get_teams(season):
 
-	query = f'SELECT DISTINCT owner_id FROM ownersXseasons_detail WHERE season = {season} AND owner_id != {TEST_OWNER_ID} ORDER BY nickname ASC'
+	query = f'SELECT owner_id FROM ownersXseasons_detail WHERE season = {season} AND owner_id != {TEST_OWNER_ID} ORDER BY nickname ASC'
 
-	rows = get_rows(query)
+	owners = get_rows(query)
 
 	teams = []
 
-	for row in rows:
+	for owner in owners:
 
-		print(row)
+		owner_id = owner['owner_id']
 
-		owner_id = row['owner_id']
-
-		query = f'SELECT bank, nickname, owner_id, place, points, recent, salary, season, team_name, yesterday FROM ownersXseasons_detail WHERE owner_id = {owner_id} AND season = {season}'
-
-		team = get_row(query)
-
-		team['place'] = make_ordinal(team['place'])
-
-		team['active_players'] = get_roster(owner_id, season, "active")
-
-		benched_players = get_roster(owner_id, season, "benched")
-
-		if (len(benched_players)) > 0:
-			team['has_benched_players'] = True
-
-			team['benched_players'] = benched_players
-
-		teams.append(team)
+		teams.append(get_team(owner_id, season))
 
 	return teams
 
@@ -538,7 +597,33 @@ def make_ordinal(n):
 		suffix = 'th'
 	return str(n) + suffix
 
-def push_to_s3(path, page):
+def parse_command_line_args():
+
+	global PUSH_TO_S3
+
+	print(sys.argv)
+
+	global settings, sections, valid_args
+
+	if len(sys.argv) == 1:
+		show_error_message()
+
+	keyword = sys.argv[1] # --owner
+
+	kw = keyword[2:] # owner
+
+	if kw in valid_args:
+		print('the keyword is valid.')
+
+		if '--push_to_s3' in sys.argv:
+
+			PUSH_TO_S3 = True
+
+		return kw
+	else:
+		show_error_message()
+
+def push_page_to_s3(path, page):
 
 	print('pushing page to s3...')
 
@@ -555,6 +640,16 @@ def push_to_s3(path, page):
 
 	my_bucket.put_object(Key=path, Body=page, ContentType='text/html', ACL='public-read')
 
+def show_error_message():
+
+	print('you need to provide a valid keyword.')
+	print('the valid keywords are:')
+
+	for a in valid_args:
+		print("--" + a)
+	
+	exit()
+
 def write_local_file(path, page):
 
 	f = open(path, "w")
@@ -564,13 +659,8 @@ def write_local_file(path, page):
 	f.close()
 
 ##############################################################
+# main function
 
-if not get_command_line_args():
+kw = parse_command_line_args()
 
-	print("no command line args.")
-
-else:
-
-	print("some command line args were supplied.")
-
-exit()
+evaluate_kw(kw)
