@@ -651,6 +651,7 @@ def show_error_message():
 
 def write_local_file(path, page):
 
+	print("writing local file...")
 	f = open(path, "w")
 
 	f.write(page)
