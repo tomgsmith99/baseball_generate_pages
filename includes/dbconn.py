@@ -15,10 +15,6 @@ print("trying mysql connection...")
 try:
 	connection = mysql.connector.connect(host=env["host"], database=env["database"], user=env["user"], password=env["password"], port=env["port"], auth_plugin='mysql_native_password')
 
-	# connection = mysql.connector.connect(host=env["host"], database=env["database"], user=env["user"], password=env["password"], port=env["port"])
-
-# auth_plugin='mysql_native_password'
-
 	cursor = connection.cursor(dictionary=True, buffered=True)
 	pcursor = connection.cursor(prepared=True)
 	tcursor = connection.cursor(dictionary=False)
@@ -48,9 +44,6 @@ def get_rows(query, no_cols = False):
 		else:
 			cursor.execute(query)
 			rows = cursor.fetchall()
-
-
-		# rows = cursor.fetchall()
 
 		return rows
 

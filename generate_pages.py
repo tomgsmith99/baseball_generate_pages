@@ -5,11 +5,10 @@ import chevron
 import copy
 import datetime
 import json
-from mysql.connector import Error
 import os
 import sys
 
-from includes.dbconn import connection, cursor, get_row, get_rows, pcursor
+from includes.dbconn import get_row, get_rows
 
 ###################################################
 
