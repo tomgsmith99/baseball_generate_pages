@@ -20,7 +20,9 @@ with open('settings.json') as file:
 
 sections = list(settings.keys())
 
-special_args = ['current', 'owners_all', 'players_all_seasons', 'seasons_all', 'trades_all_seasons']
+# special_args = ['current', 'owners_all', 'players_all_seasons', 'seasons_all', 'trades_all_seasons']
+
+special_args = ['owners_all', 'players_all_seasons', 'seasons_all', 'trades_all_seasons']
 
 valid_args = sections + special_args
 
@@ -37,6 +39,7 @@ def evaluate_kw(kw):
 	global sections
 
 	if kw in sections:
+
 		print("the keyword is in a section.")
 
 		if 'requires_id' in settings[kw] and settings[kw]['requires_id']:
@@ -53,6 +56,12 @@ def evaluate_kw(kw):
 		exit()
 		
 	else:
+
+		print("\nthe keyword is not in a section.")
+
+		# if kw == 'current':
+
+		# 	generate_page('current')
 
 		if kw == 'owners_all':
 
@@ -259,7 +268,15 @@ def generate_page(subject, item_id=0):
 
 		season = item_id
 
+		is_current_season = False
+
 		obj['heading'] = obj['heading'] + ' ' + str(season)
+
+		if int(season) == env['current_season']:
+
+			is_current_season = True
+
+			obj['heading'] = str(season) + ' Standings'
 
 		obj['season'] = season
 		obj['owner_rows'] = get_owner_rows(season)
@@ -612,11 +629,18 @@ def parse_command_line_args():
 	kw = keyword[2:] # owner
 
 	if kw in valid_args:
-		print('the keyword is valid.')
+
+		print(f'the keyword is valid: {kw}')
 
 		if '--push_to_s3' in sys.argv:
 
 			PUSH_TO_S3 = True
+
+			print("we are pushing to s3.")
+
+		else:
+
+			print("we are not pushing to s3.")
 
 		return kw
 	else:
