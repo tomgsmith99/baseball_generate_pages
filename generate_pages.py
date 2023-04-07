@@ -20,8 +20,6 @@ with open('settings.json') as file:
 
 sections = list(settings.keys())
 
-# special_args = ['current', 'owners_all', 'players_all_seasons', 'seasons_all', 'trades_all_seasons']
-
 special_args = ['owners_all', 'players_all_seasons', 'seasons_all', 'trades_all_seasons']
 
 valid_args = sections + special_args
@@ -346,11 +344,13 @@ def generate_page(subject, item_id=0):
 
 			os.makedirs(f'{env["local_home"]}/{dir_path}')
 
-	local_path = f'{env["local_home"]}/{dir_path}index.html'
+	if env["create_local_files"]:
 
-	print(local_path)
+		local_path = f'{env["local_home"]}/{dir_path}index.html'
 
-	write_local_file(local_path, page)
+		print(local_path)
+
+		write_local_file(local_path, page)
 
 	if PUSH_TO_S3:
 

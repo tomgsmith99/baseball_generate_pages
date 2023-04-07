@@ -24,6 +24,8 @@ try:
 except mysql.connector.Error as error:
 	print("query failed {}".format(error))
 
+	exit()
+
 def get_row(query):
 	try:
 		cursor.execute(query)
