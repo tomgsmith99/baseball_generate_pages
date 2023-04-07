@@ -99,23 +99,6 @@ def generate_page(subject, item_id=0):
 
 	obj = copy.deepcopy(settings[subject])
 
-	if subject == 'current':
-
-		season = env['season']
-
-		obj['title'] = 'Baseball ' + str(season)
-		obj['make_a_trade'] = 'none'
-		obj['season_page'] = True
-		obj['season_is_current'] = True
-		obj['season'] = season
-		obj['owner_rows'] = get_owner_rows(season)
-		obj['owners'] = get_owners(season)
-		obj['teams'] = get_teams(season)
-		obj['last_updated'] = get_last_updated()
-		obj['leaderboards'] = get_leaderboards(season, True)
-
-		dirs = []
-
 	if subject == 'top_six_finishes':
 
 		obj['seasons'] = []
@@ -166,7 +149,7 @@ def generate_page(subject, item_id=0):
 
 		owner['seasons'] = []
 
-		query = f'SELECT season FROM ownersXseasons WHERE owner_id = {owner_id} ORDER BY season DESC'
+		query = f'SELECT season FROM owner_x_season WHERE owner_id = {owner_id} ORDER BY season DESC'
 
 		owner['seasons'] = get_rows(query)
 
@@ -195,7 +178,7 @@ def generate_page(subject, item_id=0):
 
 			player_id = players[x]['player_id']
 
-			query = f'SELECT season FROM ownersXrosters WHERE player_id = {player_id} AND owner_id = {owner_id} AND drafted = 1'
+			query = f'SELECT season FROM owner_x_player WHERE player_id = {player_id} AND owner_id = {owner_id} AND drafted = 1'
 
 			rows = get_rows(query)
 
@@ -229,7 +212,7 @@ def generate_page(subject, item_id=0):
 
 		if owner['has-finishes-pre-full-stats']:
 
-			query = f'SELECT season, place, points FROM ownersXseasons WHERE season < {env["full_stats_begin"]} AND owner_id = {owner_id} ORDER BY season DESC'
+			query = f'SELECT season, place, points FROM owner_x_season WHERE season < {env["full_stats_begin"]} AND owner_id = {owner_id} ORDER BY season DESC'
 
 			owner['finishes'] = get_rows(query)
 
@@ -277,6 +260,8 @@ def generate_page(subject, item_id=0):
 			is_current_season = True
 
 			obj['heading'] = str(season) + ' Standings'
+			obj['last_updated'] = get_last_updated()
+			obj['season_is_current'] = True
 
 		obj['season'] = season
 		obj['owner_rows'] = get_owner_rows(season)
@@ -285,7 +270,12 @@ def generate_page(subject, item_id=0):
 
 		if int(season) >= env['full_stats_begin']:
 			obj['show_full_stats'] = True
-			obj['leaderboards'] = get_leaderboards(season, False)
+
+			if is_current_season:
+				obj['leaderboards'] = get_leaderboards(season, True)
+			else:
+				obj['leaderboards'] = get_leaderboards(season, False)
+
 		else:
 			obj['show_leaderboards'] = False
 
@@ -373,7 +363,7 @@ def get_best_finish_detail(owner_id, best_finish):
 
 	best_finish_detail = ""
 
-	query = f'SELECT season FROM ownersXseasons WHERE place = {best_finish} AND owner_id = {owner_id} ORDER BY season ASC'
+	query = f'SELECT season FROM owner_x_season WHERE place = {best_finish} AND owner_id = {owner_id} ORDER BY season ASC'
 
 	rows = get_rows(query)
 
@@ -469,6 +459,7 @@ def get_leaderboards(season, is_current):
 
 	if (is_current):
 		return current_leaderboards + leaderboards
+
 	else:
 		return leaderboards
 
@@ -476,7 +467,7 @@ def get_leaders(col, person_type, season, picked_only=True):
 
 	if person_type == 'owner':
 		name_col = 'nickname'
-		table = 'ownersXseasons_detail'
+		table = 'owner_x_season_detail'
 
 	if person_type == 'player':
 		name_col = 'fnf'
@@ -505,7 +496,7 @@ def get_leaders(col, person_type, season, picked_only=True):
 
 def get_owner_rows(season):
 
-	query = f'SELECT * FROM ownersXseasons_detail WHERE season = {season} AND owner_id != {TEST_OWNER_ID} ORDER BY place, nickname ASC'
+	query = f'SELECT * FROM owner_x_season_detail WHERE season = {season} AND owner_id != {TEST_OWNER_ID} ORDER BY place, nickname ASC'
 
 	rows = get_rows(query)
 
@@ -516,7 +507,7 @@ def get_owner_rows(season):
 
 def get_owners(season):
 
-	query = f'SELECT owner_id, nickname, season FROM ownersXseasons_detail WHERE season = {season} ORDER BY nickname ASC'
+	query = f'SELECT owner_id, nickname, season FROM owner_x_season_detail WHERE season = {season} ORDER BY nickname ASC'
 
 	rows = get_rows(query)
 
@@ -551,7 +542,7 @@ def get_roster(owner_id, season, active_or_benched):
 
 def get_team(owner_id, season):
 
-	query = f'SELECT bank, nickname, owner_id, place, points, recent, salary, season, team_name, yesterday FROM ownersXseasons_detail WHERE owner_id = {owner_id} AND season = {season}'
+	query = f'SELECT bank, nickname, owner_id, place, points, recent, salary, season, team_name, yesterday FROM owner_x_season_detail WHERE owner_id = {owner_id} AND season = {season}'
 
 	team = get_row(query)
 
@@ -570,7 +561,7 @@ def get_team(owner_id, season):
 
 def get_teams(season):
 
-	query = f'SELECT owner_id FROM ownersXseasons_detail WHERE season = {season} AND owner_id != {TEST_OWNER_ID} ORDER BY nickname ASC'
+	query = f'SELECT owner_id FROM owner_x_season_detail WHERE season = {season} AND owner_id != {TEST_OWNER_ID} ORDER BY nickname ASC'
 
 	owners = get_rows(query)
 
