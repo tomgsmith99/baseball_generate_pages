@@ -338,7 +338,7 @@ def generate_page(subject, item_id=0):
 
 		p = p + "/" + dir
 
-		if not os.path.exists(f'{env["local_home"]}/{dir_path}'):
+		if not os.path.exists(f'{env["local_home"]}/{dir_path}') and env["create_local_files"]:
 
 			print("making directory " + p)
 
