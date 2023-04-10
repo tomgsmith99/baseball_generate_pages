@@ -57,10 +57,6 @@ def evaluate_kw(kw):
 
 		print("\nthe keyword is not in a section.")
 
-		# if kw == 'current':
-
-		# 	generate_page('current')
-
 		if kw == 'owners_all':
 
 			query = f'SELECT owner_id FROM owner_valid ORDER BY owner_id ASC'
@@ -260,6 +256,7 @@ def generate_page(subject, item_id=0):
 			obj['heading'] = str(season) + ' Standings'
 			obj['last_updated'] = get_last_updated()
 			obj['season_is_current'] = True
+			obj['trades_ready'] = env['trades_ready']
 
 		obj['season'] = season
 		obj['owner_rows'] = get_owner_rows(season)
